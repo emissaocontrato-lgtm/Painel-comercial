@@ -703,8 +703,14 @@ function renderAll(){
 }
 
 function renderKPIs(data){
-  const clientes=new Set(data.map(c=>c.cli)).size;
-  const totalVgv=sum(data.map(vgv));
+  // Clientes: so conta contrato Assinado+Ativo. Mesmo cliente + mesma unidade
+  // (Produto) no periodo = 1 cliente so; unidades diferentes somam (cada uma
+  // conta) - confirmado pela usuaria.
+  const paraContarCliente=data.filter(c=>c.s1==='ASSINADO'&&c.s2==='ATIVO');
+  const clientes=new Set(paraContarCliente.map(c=>`${c.cli}||${c.pr}`)).size;
+  // VGV Total exclui cancelados (confirmado pela usuaria) - por isso agora e
+  // igual as Vendas Efetivadas.
+  const totalVgv=sum(data.filter(c=>c.s2==='ATIVO').map(vgv));
   const ticket=clientes>0?totalVgv/clientes:0;
   const efetivadas=sum(data.filter(c=>c.s2==='ATIVO').map(vgv));
   document.getElementById('kpi-clientes').textContent=clientes.toLocaleString('pt-BR');
@@ -767,7 +773,7 @@ function renderRanking(data){
   // Corretor geral
   const mp=buildCorrMap(data);
   const rank=Object.entries(mp).sort((a,b)=>b[1].vgv-a[1].vgv).slice(0,20);
-  document.getElementById('badge-corretor').textContent=data.length+' contratos';
+  document.getElementById('badge-corretor').textContent=groupIntegral(data.filter(isAtivo)).length+' contratos';
   const tb=document.getElementById('tbody-corretor');tb.innerHTML='';const _tC=rank.reduce((s,[,o])=>({vgv:s.vgv+o.vgv,n:s.n+o.n}),{vgv:0,n:0});tb.innerHTML=`<tr class="tr-total"><td></td><td>TOTAL</td><td class="val">${BRLTT(_tC.vgv)}</td><td>${_tC.n}</td></tr>`;
   rank.forEach(([nome,obj],i)=>{
     tb.innerHTML+=`<tr><td class="rank">${i===0?'⭐':''}${i+1}º</td><td>${nome}</td><td class="val">${BRLTT(obj.vgv)}</td><td>${obj.n}</td></tr>`;
