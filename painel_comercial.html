@@ -714,7 +714,7 @@ function renderKPIs(data){
   const ticket=clientes>0?totalVgv/clientes:0;
   const efetivadas=sum(data.filter(c=>c.s2==='ATIVO').map(vgv));
   document.getElementById('kpi-clientes').textContent=clientes.toLocaleString('pt-BR');
-  document.getElementById('kpi-fracoes').textContent=data.length.toLocaleString('pt-BR');
+  document.getElementById('kpi-fracoes').textContent=paraContarCliente.length.toLocaleString('pt-BR');
   document.getElementById('kpi-vendas').innerHTML=BRLTT(efetivadas);
   document.getElementById('kpi-vgv').innerHTML=BRLTT(totalVgv);
   document.getElementById('kpi-ticket').innerHTML=BRLTT(ticket);
