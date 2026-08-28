@@ -522,6 +522,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
           </div>
           <div class="chart-card">
             <div class="card-header"><span class="card-title">Funil de Conversão — Dias até Fechar</span></div>
+            <div style="display:flex;gap:6px;align-items:center;font-size:11px;color:#8a8a72;margin:2px 0 4px;">
+              <span>De <select id="funil-de" class="comp-select"></select> até <select id="funil-ate" class="comp-select"></select></span>
+            </div>
             <div class="card-sub" id="funil-sub">Média geral: —</div>
             <div class="chart-wrap"><canvas id="chartFunil"></canvas></div>
           </div>
@@ -530,7 +533,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
             <div class="chart-wrap"><canvas id="chartDesconto"></canvas></div>
           </div>
           <div class="chart-card" style="grid-column:span 2;">
-            <div class="card-header"><span class="card-title">Evolução de VGV por Corretor — últimos 12 meses</span></div>
+            <div class="card-header"><span class="card-title">Evolução de VGV por Corretor</span></div>
+            <div style="display:flex;gap:6px;align-items:center;font-size:11px;color:#8a8a72;margin:2px 0 4px;">
+              <span>De <select id="evol-de" class="comp-select"></select> até <select id="evol-ate" class="comp-select"></select></span>
+            </div>
             <div class="chart-wrap" style="height:220px;"><canvas id="chartEvolCorretor"></canvas></div>
           </div>
           <div class="chart-card" style="grid-column:span 2;">
@@ -1099,13 +1105,19 @@ function deltaHTML(a,b,inverterCor){
   const cor=bom?'#2e7d32':'#c62828',seta=d>=0?'▲':'▼';
   return`<span style="color:${cor};font-weight:600;">${seta} ${Math.abs(d*100).toFixed(1)}%</span>`;
 }
+function _paresMesTodos(){
+  return[...new Set(CONTRATOS.filter(c=>c.y&&c.m).map(c=>c.y+'-'+String(c.m).padStart(2,'0')))].sort();
+}
+function _optsMesHTML(paresMes){
+  return paresMes.map(p=>{const[yy,mm]=p.split('-');return`<option value="${p}">${MESES[parseInt(mm)]}/${yy}</option>`;}).join('');
+}
 let _compInit=false;
 function initComparativoSelects(){
   if(_compInit)return;
   _compInit=true;
   const hoje=new Date(),yNow=hoje.getFullYear(),mNow=hoje.getMonth()+1;
-  const paresMes=[...new Set(CONTRATOS.filter(c=>c.y&&c.m).map(c=>c.y+'-'+String(c.m).padStart(2,'0')))].sort();
-  const optsMes=paresMes.map(p=>{const[yy,mm]=p.split('-');return`<option value="${p}">${MESES[parseInt(mm)]}/${yy}</option>`;}).join('');
+  const paresMes=_paresMesTodos();
+  const optsMes=_optsMesHTML(paresMes);
   const elA=document.getElementById('comp-mes-a'),elB=document.getElementById('comp-mes-b');
   elA.innerHTML=optsMes;elB.innerHTML=optsMes;
   let ymAnt=mNow-1,yAnt=yNow;if(ymAnt===0){ymAnt=12;yAnt=yNow-1;}
@@ -1151,8 +1163,27 @@ function renderComparativo(){
     `<div>${tabela(yAnoA+' (até '+MESES[ateMes]+')',yAnoB+' (até '+MESES[ateMes]+')',anoAnterior,anoAtual)}</div>`;
 }
 
-function renderFunil(data){
-  const assinados=data.filter(c=>c.s1==='ASSINADO'&&c.capt&&c.dv);
+let _funilInit=false;
+function initFunilSelects(){
+  if(_funilInit)return;
+  _funilInit=true;
+  const paresMes=_paresMesTodos();
+  const optsMes=_optsMesHTML(paresMes);
+  const elDe=document.getElementById('funil-de'),elAte=document.getElementById('funil-ate');
+  elDe.innerHTML=optsMes;elAte.innerHTML=optsMes;
+  const idxAte=paresMes.length-1,idxDe=Math.max(0,idxAte-5);
+  elDe.value=paresMes[idxDe];elAte.value=paresMes[idxAte];
+  [elDe,elAte].forEach(el=>el.addEventListener('change',()=>renderFunil()));
+}
+function renderFunil(){
+  initFunilSelects();
+  const de=document.getElementById('funil-de').value,ate=document.getElementById('funil-ate').value;
+  const noIntervalo=c=>{
+    if(!c.y||!c.m)return false;
+    const chave=c.y+'-'+String(c.m).padStart(2,'0');
+    return chave>=de&&chave<=ate;
+  };
+  const assinados=CONTRATOS.filter(c=>c.s1==='ASSINADO'&&c.capt&&c.dv&&noIntervalo(c));
   const dias=assinados.map(c=>(new Date(c.dv)-new Date(c.capt))/86400000).filter(d=>d>=0&&d<=730);
   const mediaGeral=dias.length?sum(dias)/dias.length:0;
   document.getElementById('funil-sub').textContent='Média geral: '+(dias.length?Math.round(mediaGeral)+' dias ('+dias.length+' contratos)':'sem dados na seleção');
@@ -1196,11 +1227,27 @@ function renderDesconto(data){
               x:{ticks:{color:'#888899',font:{size:9},maxRotation:20},grid:{display:false}}}}});
 }
 
+let _evolInit=false;
+function initEvolSelects(){
+  if(_evolInit)return;
+  _evolInit=true;
+  const paresMes=_paresMesTodos();
+  const optsMes=_optsMesHTML(paresMes);
+  const elDe=document.getElementById('evol-de'),elAte=document.getElementById('evol-ate');
+  elDe.innerHTML=optsMes;elAte.innerHTML=optsMes;
+  const idxAte=paresMes.length-1,idxDe=Math.max(0,idxAte-11);
+  elDe.value=paresMes[idxDe];elAte.value=paresMes[idxAte];
+  [elDe,elAte].forEach(el=>el.addEventListener('change',()=>renderEvolCorretor()));
+}
 function renderEvolCorretor(){
-  const hoje=new Date(),meses=[];
-  for(let i=11;i>=0;i--){
-    const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
-    meses.push({y:d.getFullYear(),m:d.getMonth()+1,label:MESES[d.getMonth()+1]+'/'+String(d.getFullYear()).slice(2)});
+  initEvolSelects();
+  const[deY,deM]=document.getElementById('evol-de').value.split('-').map(Number);
+  const[ateY,ateM]=document.getElementById('evol-ate').value.split('-').map(Number);
+  const meses=[];
+  let y=deY,m=deM;
+  while(y<ateY||(y===ateY&&m<=ateM)){
+    meses.push({y,m,label:MESES[m]+'/'+String(y).slice(2)});
+    m++;if(m>12){m=1;y++;}
   }
   const ativos=CONTRATOS.filter(c=>c.s2==='ATIVO'&&!c.pend&&c.c1);
   const totais={};
@@ -1241,7 +1288,7 @@ function renderSazonalidade(){
 
 function renderAnalises(data){
   renderComparativo();
-  renderFunil(data);
+  renderFunil();
   renderDesconto(data);
   renderEvolCorretor();
   renderSazonalidade();
