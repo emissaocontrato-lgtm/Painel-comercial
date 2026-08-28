@@ -1256,7 +1256,13 @@ function renderEvolCorretor(){
     meses.push({y,m,label:MESES[m]+'/'+String(y).slice(2)});
     m++;if(m>12){m=1;y++;}
   }
-  const ativos=CONTRATOS.filter(c=>c.s2==='ATIVO'&&!c.pend&&c.c1);
+  const dentroIntervalo=c=>{
+    if(!c.y||!c.m)return false;
+    if(c.y<deY||(c.y===deY&&c.m<deM))return false;
+    if(c.y>ateY||(c.y===ateY&&c.m>ateM))return false;
+    return true;
+  };
+  const ativos=CONTRATOS.filter(c=>c.s2==='ATIVO'&&!c.pend&&c.c1&&dentroIntervalo(c));
   const totais={};
   ativos.forEach(c=>{totais[c.c1]=(totais[c.c1]||0)+vgv(c);});
   const top=Object.entries(totais).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
