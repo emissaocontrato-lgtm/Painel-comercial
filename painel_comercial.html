@@ -567,11 +567,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
           <div class="chart-card" style="grid-column:span 2;overflow:hidden;display:flex;flex-direction:column;">
             <div class="card-header">
               <span class="card-title">Unidades com Frações Disponíveis</span>
-              <span class="card-badge" id="badge-estoque-uh">0</span>
+              <span style="display:flex;align-items:center;gap:8px;">
+                <input type="text" id="estoque-busca" class="comp-select" placeholder="Buscar bloco/unidade (ex: B 118)" style="width:180px;" oninput="renderTabelaEstoque()">
+                <span class="card-badge" id="badge-estoque-uh">0</span>
+              </span>
             </div>
             <div style="overflow:auto;flex:1;">
               <table class="perf-table">
-                <thead><tr><th>Bloco</th><th>Unidade</th><th>Tipo</th><th>Semanas/Fração</th><th>Disponíveis</th><th>Total de Frações</th></tr></thead>
+                <thead><tr><th>Bloco</th><th>Unidade</th><th>Tipo</th><th>Semanas/Fração</th><th>Disponíveis</th><th>Total de Frações</th><th>Valor Disponível</th></tr></thead>
                 <tbody id="tbody-estoque"></tbody>
               </table>
             </div>
@@ -1234,6 +1237,7 @@ function renderAnalises(data){
 
 const STATUS_COR={VENDIDA:'#8b6914',DISPONIVEL:'#4caf7d',BLOQUEADA:'#ef5350',BLOQADMIN:'#ff7043'};
 let _blocoFiltro='TODOS';
+let _ultimoBaseEstoque=[];
 function setBlocoEstoque(b,btn){
   _blocoFiltro=b;
   document.querySelectorAll('.bloco-btn').forEach(x=>x.classList.remove('active'));
@@ -1275,19 +1279,30 @@ function renderEstoque(){
     data:{labels:tiposOrdenados.map(x=>x[0]),datasets:[{data:tiposOrdenados.map(x=>x[1]),backgroundColor:'#2196F3',borderRadius:3,barThickness:11}]},
     options:{...optsTipo,plugins:{...optsTipo.plugins,tooltip:{callbacks:{label:c=>c.raw+' frações'}}}}});
 
+  _ultimoBaseEstoque=base;
+  renderTabelaEstoque();
+}
+
+function renderTabelaEstoque(){
+  const base=_ultimoBaseEstoque||[];
   const porUnidade={};
   base.forEach(e=>{
     const k=e.bloco+'||'+e.uh;
-    if(!porUnidade[k])porUnidade[k]={bloco:e.bloco,uh:e.uh,tipo:e.tipo,semanas:e.semanas,disp:0,total:0};
+    if(!porUnidade[k])porUnidade[k]={bloco:e.bloco,uh:e.uh,tipo:e.tipo,semanas:e.semanas,disp:0,total:0,valorDisp:0};
     porUnidade[k].total++;
-    if(e.status==='DISPONIVEL')porUnidade[k].disp++;
+    if(e.status==='DISPONIVEL'){porUnidade[k].disp++;porUnidade[k].valorDisp+=(e.valor||0);}
   });
-  const unidades=Object.values(porUnidade).filter(u=>u.disp>0)
+  let unidades=Object.values(porUnidade).filter(u=>u.disp>0)
     .sort((a,b)=>a.bloco===b.bloco?((parseInt(a.uh)||0)-(parseInt(b.uh)||0)):a.bloco.localeCompare(b.bloco));
+  const busca=(document.getElementById('estoque-busca')?.value||'').trim().toUpperCase();
+  if(busca){
+    const termos=busca.split(/\s+/);
+    unidades=unidades.filter(u=>termos.every(t=>(u.bloco+' '+u.uh).toUpperCase().includes(t)));
+  }
   document.getElementById('badge-estoque-uh').textContent=unidades.length;
   const tb=document.getElementById('tbody-estoque');tb.innerHTML='';
   unidades.forEach(u=>{
-    tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td><td style="font-weight:700;color:#2e7d32;">${u.disp}</td><td>${u.total}</td></tr>`;
+    tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td><td style="font-weight:700;color:#2e7d32;">${u.disp}</td><td>${u.total}</td><td>${BRLTT(u.valorDisp)}</td></tr>`;
   });
 }
 
