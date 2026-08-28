@@ -1173,7 +1173,7 @@ function initFunilSelects(){
   elDe.innerHTML=optsMes;elAte.innerHTML=optsMes;
   const idxAte=paresMes.length-1,idxDe=Math.max(0,idxAte-5);
   elDe.value=paresMes[idxDe];elAte.value=paresMes[idxAte];
-  [elDe,elAte].forEach(el=>el.addEventListener('change',()=>renderFunil()));
+  [elDe,elAte].forEach(el=>el.addEventListener('change',()=>{renderFunil();renderDesconto();}));
 }
 function renderFunil(){
   initFunilSelects();
@@ -1203,8 +1203,15 @@ function renderFunil(){
       scales:{...opts.scales,x:{...opts.scales.x,ticks:{...opts.scales.x.ticks,callback:v=>v+'d'}}}}});
 }
 
-function renderDesconto(data){
-  const assinados=data.filter(c=>c.s1==='ASSINADO'&&c.c1&&(c.entp!=null||c.descp!=null));
+function renderDesconto(){
+  initFunilSelects();
+  const de=document.getElementById('funil-de').value,ate=document.getElementById('funil-ate').value;
+  const noIntervalo=c=>{
+    if(!c.y||!c.m)return false;
+    const chave=c.y+'-'+String(c.m).padStart(2,'0');
+    return chave>=de&&chave<=ate;
+  };
+  const assinados=CONTRATOS.filter(c=>c.s1==='ASSINADO'&&c.c1&&noIntervalo(c)&&(c.entp!=null||c.descp!=null));
   const porCorretor={};
   assinados.forEach(c=>{
     if(!porCorretor[c.c1])porCorretor[c.c1]={entSoma:0,entN:0,descSoma:0,descN:0,vgv:0};
@@ -1289,7 +1296,7 @@ function renderSazonalidade(){
 function renderAnalises(data){
   renderComparativo();
   renderFunil();
-  renderDesconto(data);
+  renderDesconto();
   renderEvolCorretor();
   renderSazonalidade();
 }
