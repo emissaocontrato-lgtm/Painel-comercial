@@ -111,6 +111,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
 /* TABLES */
 .perf-table{width:100%;border-collapse:collapse;font-size:11px;}
 .comp-select{font-size:11px;padding:3px 6px;border:1px solid #e5ded4;border-radius:5px;background:#fff;color:#010f2a;}
+.filtro-col{width:100%;box-sizing:border-box;font-size:10.5px;font-weight:400;text-transform:none;letter-spacing:0;padding:3px 5px;border:1px solid #e5ded4;border-radius:4px;background:#fff;color:#010f2a;}
+.perf-table thead tr.filtro-linha th{background:#f5f4f4;padding:4px 6px;position:static;}
 .bloco-btn{font-size:11px;padding:4px 12px;border:1px solid #e5ded4;border-radius:14px;background:#fff;color:#8a8a72;cursor:pointer;}
 .bloco-btn.active{background:#010f2a;color:#fff;border-color:#010f2a;}
 .perf-table thead th{background:#f5f4f4;color:#8a8a72;padding:7px 8px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0;z-index:1;border-bottom:1px solid #e5ded4;}
@@ -589,7 +591,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
             </div>
             <div style="overflow:auto;flex:1;">
               <table class="perf-table">
-                <thead><tr><th>Bloco</th><th>Unidade</th><th>Tipo</th><th>Semanas/Fração</th><th>Disponíveis</th><th>Bloqueadas</th><th>Total de Frações</th><th>Valor Disponível</th><th>Planta</th></tr></thead>
+                <thead>
+                  <tr><th>Bloco</th><th>Unidade</th><th>Tipo</th><th>Semanas/Fração</th><th>Disponíveis</th><th>Bloqueadas</th><th>Total de Frações</th><th>Valor Disponível</th><th>Planta</th></tr>
+                  <tr class="filtro-linha">
+                    <th><input type="text" class="filtro-col" id="filtro-bloco" placeholder="ex: B" oninput="renderTabelaEstoque()"></th>
+                    <th><input type="text" class="filtro-col" id="filtro-uh" placeholder="ex: 101" oninput="renderTabelaEstoque()"></th>
+                    <th><input type="text" class="filtro-col" id="filtro-tipo" placeholder="ex: Garden" oninput="renderTabelaEstoque()"></th>
+                    <th><input type="text" class="filtro-col" id="filtro-semanas" placeholder="ex: 4" oninput="renderTabelaEstoque()"></th>
+                    <th><input type="text" class="filtro-col" id="filtro-disp" placeholder="ex: 1" oninput="renderTabelaEstoque()"></th>
+                    <th><input type="text" class="filtro-col" id="filtro-bloq" placeholder="ex: 0" oninput="renderTabelaEstoque()"></th>
+                    <th><input type="text" class="filtro-col" id="filtro-total" placeholder="ex: 10" oninput="renderTabelaEstoque()"></th>
+                    <th></th>
+                    <th><button class="bloco-btn" style="font-size:9.5px;padding:3px 6px;" onclick="limparFiltrosEstoque()">Limpar</button></th>
+                  </tr>
+                </thead>
                 <tbody id="tbody-estoque"></tbody>
               </table>
             </div>
@@ -1392,6 +1407,16 @@ function renderTabelaEstoque(){
     const termos=busca.split(/\s+/);
     unidades=unidades.filter(u=>termos.every(t=>(u.bloco+' '+u.uh).toUpperCase().includes(t)));
   }
+  const vId=id=>(document.getElementById(id)?.value||'').trim();
+  const fBloco=vId('filtro-bloco').toUpperCase(), fUh=vId('filtro-uh').toUpperCase(), fTipo=vId('filtro-tipo').toUpperCase(),
+        fSemanas=vId('filtro-semanas'), fDisp=vId('filtro-disp'), fBloq=vId('filtro-bloq'), fTotal=vId('filtro-total');
+  if(fBloco)unidades=unidades.filter(u=>String(u.bloco||'').toUpperCase().includes(fBloco));
+  if(fUh)unidades=unidades.filter(u=>String(u.uh||'').toUpperCase().includes(fUh));
+  if(fTipo)unidades=unidades.filter(u=>String(u.tipo||'').toUpperCase().includes(fTipo));
+  if(fSemanas)unidades=unidades.filter(u=>String(u.semanas??'')===fSemanas);
+  if(fDisp)unidades=unidades.filter(u=>String(u.disp)===fDisp);
+  if(fBloq)unidades=unidades.filter(u=>String(u.bloq)===fBloq);
+  if(fTotal)unidades=unidades.filter(u=>String(u.total)===fTotal);
   document.getElementById('badge-estoque-uh').textContent=unidades.length;
   _estoqueUnidades=unidades;
   const tb=document.getElementById('tbody-estoque');tb.innerHTML='';
@@ -1405,6 +1430,13 @@ function renderTabelaEstoque(){
     const celValor=u.disp>0?`<td>${BRLTT(valorExibir)}</td>`:`<td style="color:#888899;">${BRLTT(valorExibir)} <span style="font-size:10px;">(bloqueado)</span></td>`;
     tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td>${celDisp}${celBloq}<td>${u.total}</td>${celValor}<td>${celPlanta}</td></tr>`;
   });
+}
+
+function limparFiltrosEstoque(){
+  ['estoque-busca','filtro-bloco','filtro-uh','filtro-tipo','filtro-semanas','filtro-disp','filtro-bloq','filtro-total'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  renderTabelaEstoque();
 }
 
 function abrirPlanta(caminho,titulo){
