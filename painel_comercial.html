@@ -541,7 +541,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
           </div>
           <div class="chart-card" style="grid-column:span 2;">
             <div class="card-header"><span class="card-title">Sazonalidade — VGV Médio por Mês (todos os anos)</span></div>
-            <div class="chart-wrap"><canvas id="chartSazonalidade"></canvas></div>
+            <div class="chart-wrap" style="height:160px;"><canvas id="chartSazonalidade"></canvas></div>
           </div>
         </div>
       </div>
@@ -1265,7 +1265,7 @@ function renderEvolCorretor(){
   const ativos=CONTRATOS.filter(c=>c.s2==='ATIVO'&&!c.pend&&c.c1&&dentroIntervalo(c));
   const totais={};
   ativos.forEach(c=>{totais[c.c1]=(totais[c.c1]||0)+vgv(c);});
-  const top=Object.entries(totais).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
+  const top=Object.entries(totais).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
   const datasets=top.map((nome,i)=>({
     label:nome,
     data:meses.map(({y,m})=>sum(ativos.filter(c=>c.c1===nome&&c.y===y&&c.m===m).map(vgv))),
