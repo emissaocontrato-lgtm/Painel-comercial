@@ -589,7 +589,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
             </div>
             <div style="overflow:auto;flex:1;">
               <table class="perf-table">
-                <thead><tr><th>Bloco</th><th>Unidade</th><th>Tipo</th><th>Semanas/Fração</th><th>Disponíveis</th><th>Total de Frações</th><th>Valor Disponível</th><th>Planta</th></tr></thead>
+                <thead><tr><th>Bloco</th><th>Unidade</th><th>Tipo</th><th>Semanas/Fração</th><th>Disponíveis</th><th>Bloqueadas</th><th>Total de Frações</th><th>Valor Disponível</th><th>Planta</th></tr></thead>
                 <tbody id="tbody-estoque"></tbody>
               </table>
             </div>
@@ -994,15 +994,21 @@ function showDrillDown(title,contracts){
   });
   document.getElementById('dd-modal').classList.add('open');
 }
-function showDrillDownEstoque(idx){
+function showDrillDownEstoque(idx,tipo){
   const u=_estoqueUnidades[idx];
   if(!u)return;
+  tipo=tipo||'disp';
   document.querySelector('#dd-table thead').innerHTML='<tr><th>Fração</th><th>Status</th><th>Semanas</th><th>Tipo</th><th>Valor</th></tr>';
   document.getElementById('dd-title').textContent='Bloco '+u.bloco+' — Unidade '+u.uh;
-  document.getElementById('dd-summary').textContent=u.disp+' fração(ões) disponível(is) · Valor Total Disponível: '+BRL(u.valorDisp);
+  if(tipo==='bloq'){
+    document.getElementById('dd-summary').textContent=u.bloq+' fração(ões) bloqueada(s) · Valor Total Bloqueado: '+BRL(u.valorBloq);
+  }else{
+    document.getElementById('dd-summary').textContent=u.disp+' fração(ões) disponível(is) · Valor Total Disponível: '+BRL(u.valorDisp);
+  }
   const tb=document.getElementById('dd-tbody');tb.innerHTML='';
   const cor={DISPONIVEL:'#2e7d32',VENDIDA:'#8a8a72',BLOQUEADA:'#c62828',BLOQADMIN:'#c62828'};
-  [...u.fracoes].sort((a,b)=>(a.status==='DISPONIVEL'?0:1)-(b.status==='DISPONIVEL'?0:1)||String(a.cota).localeCompare(String(b.cota),undefined,{numeric:true})).forEach(f=>{
+  const destaque=tipo==='bloq'?(s=>s==='BLOQUEADA'||s==='BLOQADMIN'?0:1):(s=>s==='DISPONIVEL'?0:1);
+  [...u.fracoes].sort((a,b)=>destaque(a.status)-destaque(b.status)||String(a.cota).localeCompare(String(b.cota),undefined,{numeric:true})).forEach(f=>{
     tb.innerHTML+=`<tr><td>${f.ident||f.cota}</td><td style="color:${cor[f.status]||'#010f2a'};font-weight:600;">${f.status}</td><td>${f.semanas||'—'}</td><td>${f.tipo||'—'}</td><td class="val">${BRLTT(f.valor||0)}</td></tr>`;
   });
   document.getElementById('dd-modal').classList.add('open');
@@ -1373,12 +1379,13 @@ function renderTabelaEstoque(){
   const porUnidade={};
   base.forEach(e=>{
     const k=e.bloco+'||'+e.uh;
-    if(!porUnidade[k])porUnidade[k]={bloco:e.bloco,uh:e.uh,tipo:e.tipo,semanas:e.semanas,disp:0,total:0,valorDisp:0,fracoes:[]};
+    if(!porUnidade[k])porUnidade[k]={bloco:e.bloco,uh:e.uh,tipo:e.tipo,semanas:e.semanas,disp:0,bloq:0,total:0,valorDisp:0,valorBloq:0,fracoes:[]};
     porUnidade[k].total++;
     porUnidade[k].fracoes.push(e);
     if(e.status==='DISPONIVEL'){porUnidade[k].disp++;porUnidade[k].valorDisp+=(e.valor||0);}
+    if(e.status==='BLOQUEADA'||e.status==='BLOQADMIN'){porUnidade[k].bloq++;porUnidade[k].valorBloq+=(e.valor||0);}
   });
-  let unidades=Object.values(porUnidade).filter(u=>u.disp>0)
+  let unidades=Object.values(porUnidade).filter(u=>u.disp>0||u.bloq>0)
     .sort((a,b)=>a.bloco===b.bloco?((parseInt(a.uh)||0)-(parseInt(b.uh)||0)):a.bloco.localeCompare(b.bloco));
   const busca=(document.getElementById('estoque-busca')?.value||'').trim().toUpperCase();
   if(busca){
@@ -1392,7 +1399,9 @@ function renderTabelaEstoque(){
     const chavePlanta=u.bloco+'-'+(parseInt(u.uh)||u.uh);
     const planta=PLANTAS[chavePlanta];
     const celPlanta=planta?`<button class="bloco-btn" onclick="abrirPlanta('${planta}','${u.bloco} ${u.uh}')" title="Ver planta da unidade">📐 Ver</button>`:'<span style="color:#888899;">—</span>';
-    tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td><td style="font-weight:700;color:#2e7d32;cursor:pointer;text-decoration:underline;" onclick="showDrillDownEstoque(${i})">${u.disp}</td><td>${u.total}</td><td>${BRLTT(u.valorDisp)}</td><td>${celPlanta}</td></tr>`;
+    const celDisp=u.disp>0?`<td style="font-weight:700;color:#2e7d32;cursor:pointer;text-decoration:underline;" onclick="showDrillDownEstoque(${i},'disp')">${u.disp}</td>`:`<td>0</td>`;
+    const celBloq=u.bloq>0?`<td style="font-weight:700;color:#c62828;cursor:pointer;text-decoration:underline;" onclick="showDrillDownEstoque(${i},'bloq')">${u.bloq}</td>`:`<td>0</td>`;
+    tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td>${celDisp}${celBloq}<td>${u.total}</td><td>${BRLTT(u.valorDisp)}</td><td>${celPlanta}</td></tr>`;
   });
 }
 
