@@ -111,6 +111,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
 /* TABLES */
 .perf-table{width:100%;border-collapse:collapse;font-size:11px;}
 .comp-select{font-size:11px;padding:3px 6px;border:1px solid #e5ded4;border-radius:5px;background:#fff;color:#010f2a;}
+.bloco-btn{font-size:11px;padding:4px 12px;border:1px solid #e5ded4;border-radius:14px;background:#fff;color:#8a8a72;cursor:pointer;}
+.bloco-btn.active{background:#010f2a;color:#fff;border-color:#010f2a;}
 .perf-table thead th{background:#f5f4f4;color:#8a8a72;padding:7px 8px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0;z-index:1;border-bottom:1px solid #e5ded4;}
 .perf-table tbody tr{border-bottom:1px solid #e5ded4;transition:background .1s;}
 .perf-table tbody tr:hover{background:#ffffff;}
@@ -540,8 +542,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
 
       <!-- ══ ESTOQUE ══ -->
       <div class="tab-panel" id="tab-estoque">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:2px;">
+          <span class="card-sub" style="margin:0;">Bloco:</span>
+          <button class="bloco-btn active" onclick="setBlocoEstoque('TODOS',this)">Todos</button>
+          <button class="bloco-btn" onclick="setBlocoEstoque('A',this)">A</button>
+          <button class="bloco-btn" onclick="setBlocoEstoque('B',this)">B</button>
+          <button class="bloco-btn" onclick="setBlocoEstoque('C',this)">C</button>
+        </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex-shrink:0;">
-          <div class="kpi-card"><div class="kpi-icon">🏢</div><div><div class="kpi-label">Total de Cotas (A/B/C)</div><div class="kpi-value" id="est-total">—</div></div></div>
+          <div class="kpi-card"><div class="kpi-icon">🏢</div><div><div class="kpi-label">Total de Frações (A/B/C)</div><div class="kpi-value" id="est-total">—</div></div></div>
           <div class="kpi-card"><div class="kpi-icon">✅</div><div><div class="kpi-label">Vendidas</div><div class="kpi-value" id="est-vendidas">—</div></div></div>
           <div class="kpi-card"><div class="kpi-icon">🟢</div><div><div class="kpi-label">Disponíveis</div><div class="kpi-value" id="est-disponiveis">—</div></div></div>
           <div class="kpi-card"><div class="kpi-icon">🔒</div><div><div class="kpi-label">Bloqueadas</div><div class="kpi-value" id="est-bloqueadas">—</div></div></div>
@@ -552,17 +561,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
             <div class="chart-wrap"><canvas id="chartEstoqueBloco"></canvas></div>
           </div>
           <div class="chart-card">
-            <div class="card-header"><span class="card-title">Cotas Disponíveis por Tipo de Unidade</span></div>
+            <div class="card-header"><span class="card-title">Frações Disponíveis por Tipo de Unidade</span></div>
             <div class="chart-wrap"><canvas id="chartEstoqueTipo"></canvas></div>
           </div>
           <div class="chart-card" style="grid-column:span 2;overflow:hidden;display:flex;flex-direction:column;">
             <div class="card-header">
-              <span class="card-title">Unidades com Cotas Disponíveis</span>
+              <span class="card-title">Unidades com Frações Disponíveis</span>
               <span class="card-badge" id="badge-estoque-uh">0</span>
             </div>
             <div style="overflow:auto;flex:1;">
               <table class="perf-table">
-                <thead><tr><th>Bloco</th><th>Unidade</th><th>Tipo</th><th>Semanas/Cota</th><th>Disponíveis</th><th>Total de Cotas</th></tr></thead>
+                <thead><tr><th>Bloco</th><th>Unidade</th><th>Tipo</th><th>Semanas/Fração</th><th>Disponíveis</th><th>Total de Frações</th></tr></thead>
                 <tbody id="tbody-estoque"></tbody>
               </table>
             </div>
@@ -1221,24 +1230,32 @@ function renderAnalises(data){
   renderSazonalidade();
 }
 
-// ══════════ ESTOQUE (Bloco A/B/C — cotas vendidas/disponíveis/bloqueadas) ══════════
+// ══════════ ESTOQUE (Bloco A/B/C — frações vendidas/disponíveis/bloqueadas) ══════════
 
 const STATUS_COR={VENDIDA:'#8b6914',DISPONIVEL:'#4caf7d',BLOQUEADA:'#ef5350',BLOQADMIN:'#ff7043'};
+let _blocoFiltro='TODOS';
+function setBlocoEstoque(b,btn){
+  _blocoFiltro=b;
+  document.querySelectorAll('.bloco-btn').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  renderEstoque();
+}
 function renderEstoque(){
   if(!ESTOQUE||!ESTOQUE.length)return;
-  const total=ESTOQUE.length;
-  const vendidas=ESTOQUE.filter(e=>e.status==='VENDIDA').length;
-  const disponiveis=ESTOQUE.filter(e=>e.status==='DISPONIVEL').length;
-  const bloqueadas=ESTOQUE.filter(e=>e.status==='BLOQUEADA'||e.status==='BLOQADMIN').length;
+  const base=_blocoFiltro==='TODOS'?ESTOQUE:ESTOQUE.filter(e=>e.bloco===_blocoFiltro);
+  const total=base.length;
+  const vendidas=base.filter(e=>e.status==='VENDIDA').length;
+  const disponiveis=base.filter(e=>e.status==='DISPONIVEL').length;
+  const bloqueadas=base.filter(e=>e.status==='BLOQUEADA'||e.status==='BLOQADMIN').length;
   document.getElementById('est-total').textContent=total.toLocaleString('pt-BR');
   document.getElementById('est-vendidas').textContent=vendidas.toLocaleString('pt-BR');
   document.getElementById('est-disponiveis').textContent=disponiveis.toLocaleString('pt-BR');
   document.getElementById('est-bloqueadas').textContent=bloqueadas.toLocaleString('pt-BR');
 
-  const blocos=['A','B','C'];
+  const blocos=_blocoFiltro==='TODOS'?['A','B','C']:[_blocoFiltro];
   const statusList=['VENDIDA','DISPONIVEL','BLOQUEADA','BLOQADMIN'];
   const porBloco=blocos.map(b=>{
-    const sub=ESTOQUE.filter(e=>e.bloco===b);
+    const sub=base.filter(e=>e.bloco===b);
     return statusList.map(s=>sub.filter(e=>e.status===s).length);
   });
   dc('chartEstoqueBloco');
@@ -1248,7 +1265,7 @@ function renderEstoque(){
       scales:{x:{stacked:true,ticks:{color:'#888899',font:{size:11}},grid:{display:false}},
               y:{stacked:true,ticks:{color:'#888899',font:{size:9}},grid:{color:'#2a2a38'}}}}});
 
-  const disp=ESTOQUE.filter(e=>e.status==='DISPONIVEL');
+  const disp=base.filter(e=>e.status==='DISPONIVEL');
   const porTipo={};
   disp.forEach(e=>{const t=e.tipo||'Sem tipo';porTipo[t]=(porTipo[t]||0)+1;});
   const tiposOrdenados=Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).slice(0,10);
@@ -1256,10 +1273,10 @@ function renderEstoque(){
   const optsTipo=hbO();
   charts['chartEstoqueTipo']=new Chart(document.getElementById('chartEstoqueTipo'),{type:'bar',
     data:{labels:tiposOrdenados.map(x=>x[0]),datasets:[{data:tiposOrdenados.map(x=>x[1]),backgroundColor:'#2196F3',borderRadius:3,barThickness:11}]},
-    options:{...optsTipo,plugins:{...optsTipo.plugins,tooltip:{callbacks:{label:c=>c.raw+' cotas'}}}}});
+    options:{...optsTipo,plugins:{...optsTipo.plugins,tooltip:{callbacks:{label:c=>c.raw+' frações'}}}}});
 
   const porUnidade={};
-  ESTOQUE.forEach(e=>{
+  base.forEach(e=>{
     const k=e.bloco+'||'+e.uh;
     if(!porUnidade[k])porUnidade[k]={bloco:e.bloco,uh:e.uh,tipo:e.tipo,semanas:e.semanas,disp:0,total:0};
     porUnidade[k].total++;
