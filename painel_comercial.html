@@ -1401,7 +1401,9 @@ function renderTabelaEstoque(){
     const celPlanta=planta?`<button class="bloco-btn" onclick="abrirPlanta('${planta}','${u.bloco} ${u.uh}')" title="Ver planta da unidade">📐 Ver</button>`:'<span style="color:#888899;">—</span>';
     const celDisp=u.disp>0?`<td style="font-weight:700;color:#2e7d32;cursor:pointer;text-decoration:underline;" onclick="showDrillDownEstoque(${i},'disp')">${u.disp}</td>`:`<td>0</td>`;
     const celBloq=u.bloq>0?`<td style="font-weight:700;color:#c62828;cursor:pointer;text-decoration:underline;" onclick="showDrillDownEstoque(${i},'bloq')">${u.bloq}</td>`:`<td>0</td>`;
-    tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td>${celDisp}${celBloq}<td>${u.total}</td><td>${BRLTT(u.valorDisp)}</td><td>${celPlanta}</td></tr>`;
+    const valorExibir=u.disp>0?u.valorDisp:u.valorBloq;
+    const celValor=u.disp>0?`<td>${BRLTT(valorExibir)}</td>`:`<td style="color:#888899;">${BRLTT(valorExibir)} <span style="font-size:10px;">(bloqueado)</span></td>`;
+    tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td>${celDisp}${celBloq}<td>${u.total}</td>${celValor}<td>${celPlanta}</td></tr>`;
   });
 }
 
