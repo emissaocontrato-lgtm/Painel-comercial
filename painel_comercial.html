@@ -110,6 +110,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
 
 /* TABLES */
 .perf-table{width:100%;border-collapse:collapse;font-size:11px;}
+.comp-select{font-size:11px;padding:3px 6px;border:1px solid #e5ded4;border-radius:5px;background:#fff;color:#010f2a;}
 .perf-table thead th{background:#f5f4f4;color:#8a8a72;padding:7px 8px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0;z-index:1;border-bottom:1px solid #e5ded4;}
 .perf-table tbody tr{border-bottom:1px solid #e5ded4;transition:background .1s;}
 .perf-table tbody tr:hover{background:#ffffff;}
@@ -509,7 +510,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;">
           <div class="chart-card" style="grid-column:span 2;">
             <div class="card-header"><span class="card-title">Comparativo de Períodos</span></div>
-            <div class="card-sub">Calculado sobre TODOS os contratos (não depende dos filtros acima)</div>
+            <div class="card-sub">Calculado sobre TODOS os contratos (não depende dos filtros acima) — escolha os períodos:</div>
+            <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-size:11px;color:#8a8a72;margin:2px 0 8px;">
+              <span>Mês: <select id="comp-mes-a" class="comp-select"></select> → <select id="comp-mes-b" class="comp-select"></select></span>
+              <span>Ano: <select id="comp-ano-a" class="comp-select"></select> → <select id="comp-ano-b" class="comp-select"></select> <select id="comp-ano-ate" class="comp-select"></select></span>
+            </div>
             <div id="comparativo-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;"></div>
           </div>
           <div class="chart-card">
@@ -1033,13 +1038,46 @@ function deltaHTML(a,b,inverterCor){
   const cor=bom?'#2e7d32':'#c62828',seta=d>=0?'▲':'▼';
   return`<span style="color:${cor};font-weight:600;">${seta} ${Math.abs(d*100).toFixed(1)}%</span>`;
 }
+let _compInit=false;
+function initComparativoSelects(){
+  if(_compInit)return;
+  _compInit=true;
+  const hoje=new Date(),yNow=hoje.getFullYear(),mNow=hoje.getMonth()+1;
+  const paresMes=[...new Set(CONTRATOS.filter(c=>c.y&&c.m).map(c=>c.y+'-'+String(c.m).padStart(2,'0')))].sort();
+  const optsMes=paresMes.map(p=>{const[yy,mm]=p.split('-');return`<option value="${p}">${MESES[parseInt(mm)]}/${yy}</option>`;}).join('');
+  const elA=document.getElementById('comp-mes-a'),elB=document.getElementById('comp-mes-b');
+  elA.innerHTML=optsMes;elB.innerHTML=optsMes;
+  let ymAnt=mNow-1,yAnt=yNow;if(ymAnt===0){ymAnt=12;yAnt=yNow-1;}
+  const strAnt=yAnt+'-'+String(ymAnt).padStart(2,'0'),strAtual=yNow+'-'+String(mNow).padStart(2,'0');
+  elA.value=paresMes.includes(strAnt)?strAnt:paresMes[Math.max(0,paresMes.length-2)];
+  elB.value=paresMes.includes(strAtual)?strAtual:paresMes[paresMes.length-1];
+
+  const anos=[...new Set(CONTRATOS.map(c=>c.y))].filter(Boolean).sort();
+  const optsAno=anos.map(yy=>`<option value="${yy}">${yy}</option>`).join('');
+  const elYA=document.getElementById('comp-ano-a'),elYB=document.getElementById('comp-ano-b');
+  elYA.innerHTML=optsAno;elYB.innerHTML=optsAno;
+  elYA.value=anos.includes(yNow-1)?yNow-1:anos[Math.max(0,anos.length-2)];
+  elYB.value=anos.includes(yNow)?yNow:anos[anos.length-1];
+
+  const elAte=document.getElementById('comp-ano-ate');
+  elAte.innerHTML=MESES.slice(1).map((nome,i)=>`<option value="${i+1}">até ${nome}</option>`).join('');
+  elAte.value=mNow;
+
+  ['comp-mes-a','comp-mes-b','comp-ano-a','comp-ano-b','comp-ano-ate'].forEach(id=>{
+    document.getElementById(id).addEventListener('change',renderComparativo);
+  });
+}
 function renderComparativo(){
-  const hoje=new Date(),y=hoje.getFullYear(),m=hoje.getMonth()+1;
-  let ymAnt=m-1,yAnt=y;if(ymAnt===0){ymAnt=12;yAnt=y-1;}
+  initComparativoSelects();
+  const[yAnt,ymAnt]=document.getElementById('comp-mes-a').value.split('-').map(Number);
+  const[y,m]=document.getElementById('comp-mes-b').value.split('-').map(Number);
+  const yAnoA=parseInt(document.getElementById('comp-ano-a').value);
+  const yAnoB=parseInt(document.getElementById('comp-ano-b').value);
+  const ateMes=parseInt(document.getElementById('comp-ano-ate').value);
   const mesAtual=calcPeriodo(c=>c.y===y&&c.m===m);
   const mesAnterior=calcPeriodo(c=>c.y===yAnt&&c.m===ymAnt);
-  const anoAtual=calcPeriodo(c=>c.y===y&&c.m<=m);
-  const anoAnterior=calcPeriodo(c=>c.y===(y-1)&&c.m<=m);
+  const anoAtual=calcPeriodo(c=>c.y===yAnoB&&c.m<=ateMes);
+  const anoAnterior=calcPeriodo(c=>c.y===yAnoA&&c.m<=ateMes);
   const linha=(label,pa,pb,fmt,inv)=>`<tr><td>${label}</td><td>${fmt(pa)}</td><td>${fmt(pb)}</td><td>${deltaHTML(pa,pb,inv)}</td></tr>`;
   const tabela=(titA,titB,pA,pB)=>`<table class="perf-table" style="width:100%;"><thead><tr><th>Métrica</th><th>${titA}</th><th>${titB}</th><th>Δ</th></tr></thead><tbody>
     ${linha('VGV',pA.vgv,pB.vgv,BRL,false)}
@@ -1048,8 +1086,8 @@ function renderComparativo(){
     ${linha('% Cancelamento',pA.taxaCancel,pB.taxaCancel,v=>(v*100).toFixed(1)+'%',true)}
   </tbody></table>`;
   document.getElementById('comparativo-grid').innerHTML=
-    `<div><div class="card-sub">Mês: ${MESES[ymAnt]}/${yAnt} → ${MESES[m]}/${y}</div>${tabela(MESES[ymAnt]+'/'+yAnt,MESES[m]+'/'+y,mesAnterior,mesAtual)}</div>`+
-    `<div><div class="card-sub">Ano (até ${MESES[m]}): ${y-1} → ${y}</div>${tabela(String(y-1)+' YTD',String(y)+' YTD',anoAnterior,anoAtual)}</div>`;
+    `<div>${tabela(MESES[ymAnt]+'/'+yAnt,MESES[m]+'/'+y,mesAnterior,mesAtual)}</div>`+
+    `<div>${tabela(yAnoA+' (até '+MESES[ateMes]+')',yAnoB+' (até '+MESES[ateMes]+')',anoAnterior,anoAtual)}</div>`;
 }
 
 function renderFunil(data){
