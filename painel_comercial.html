@@ -968,12 +968,26 @@ function renderFinanceiro(data){
 }
 
 function showDrillDown(title,contracts){
+  document.querySelector('#dd-table thead').innerHTML='<tr><th>#ID</th><th>Data</th><th>Cliente</th><th>Fração</th><th>Produto</th><th>Corretor</th><th>Canal</th><th>Gerente</th><th>VGV</th><th>Status</th></tr>';
   document.getElementById('dd-title').textContent=title;
   const tot=contracts.reduce((s,c)=>s+vgv(c),0);
   document.getElementById('dd-summary').textContent=contracts.length+' contrato'+(contracts.length!==1?'s':'')+' · VGV Total: '+BRL(tot);
   const tb=document.getElementById('dd-tbody');tb.innerHTML='';
   contracts.sort((a,b)=>vgv(b)-vgv(a)).forEach(c=>{
     tb.innerHTML+=`<tr><td>${c.id}</td><td>${c.dv||'—'}</td><td>${c.cli}</td><td>${c.fr||'—'}</td><td>${c.pr||'—'}</td><td>${c.c1||c.c2||'—'}</td><td>${c.can||'—'}</td><td>${c.ger||'—'}</td><td class="val">${BRLTT(vgv(c))}</td><td>${sBadge(c.s2)}</td></tr>`;
+  });
+  document.getElementById('dd-modal').classList.add('open');
+}
+function showDrillDownEstoque(idx){
+  const u=_estoqueUnidades[idx];
+  if(!u)return;
+  document.querySelector('#dd-table thead').innerHTML='<tr><th>Fração</th><th>Status</th><th>Semanas</th><th>Tipo</th><th>Valor</th></tr>';
+  document.getElementById('dd-title').textContent='Bloco '+u.bloco+' — Unidade '+u.uh;
+  document.getElementById('dd-summary').textContent=u.disp+' fração(ões) disponível(is) · Valor Total Disponível: '+BRL(u.valorDisp);
+  const tb=document.getElementById('dd-tbody');tb.innerHTML='';
+  const cor={DISPONIVEL:'#2e7d32',VENDIDA:'#8a8a72',BLOQUEADA:'#c62828',BLOQADMIN:'#c62828'};
+  [...u.fracoes].sort((a,b)=>(a.status==='DISPONIVEL'?0:1)-(b.status==='DISPONIVEL'?0:1)||String(a.cota).localeCompare(String(b.cota),undefined,{numeric:true})).forEach(f=>{
+    tb.innerHTML+=`<tr><td>${f.ident||f.cota}</td><td style="color:${cor[f.status]||'#010f2a'};font-weight:600;">${f.status}</td><td>${f.semanas||'—'}</td><td>${f.tipo||'—'}</td><td class="val">${BRLTT(f.valor||0)}</td></tr>`;
   });
   document.getElementById('dd-modal').classList.add('open');
 }
@@ -1238,6 +1252,7 @@ function renderAnalises(data){
 const STATUS_COR={VENDIDA:'#8b6914',DISPONIVEL:'#4caf7d',BLOQUEADA:'#ef5350',BLOQADMIN:'#ff7043'};
 let _blocoFiltro='TODOS';
 let _ultimoBaseEstoque=[];
+let _estoqueUnidades=[];
 function setBlocoEstoque(b,btn){
   _blocoFiltro=b;
   document.querySelectorAll('.bloco-btn').forEach(x=>x.classList.remove('active'));
@@ -1288,8 +1303,9 @@ function renderTabelaEstoque(){
   const porUnidade={};
   base.forEach(e=>{
     const k=e.bloco+'||'+e.uh;
-    if(!porUnidade[k])porUnidade[k]={bloco:e.bloco,uh:e.uh,tipo:e.tipo,semanas:e.semanas,disp:0,total:0,valorDisp:0};
+    if(!porUnidade[k])porUnidade[k]={bloco:e.bloco,uh:e.uh,tipo:e.tipo,semanas:e.semanas,disp:0,total:0,valorDisp:0,fracoes:[]};
     porUnidade[k].total++;
+    porUnidade[k].fracoes.push(e);
     if(e.status==='DISPONIVEL'){porUnidade[k].disp++;porUnidade[k].valorDisp+=(e.valor||0);}
   });
   let unidades=Object.values(porUnidade).filter(u=>u.disp>0)
@@ -1300,9 +1316,10 @@ function renderTabelaEstoque(){
     unidades=unidades.filter(u=>termos.every(t=>(u.bloco+' '+u.uh).toUpperCase().includes(t)));
   }
   document.getElementById('badge-estoque-uh').textContent=unidades.length;
+  _estoqueUnidades=unidades;
   const tb=document.getElementById('tbody-estoque');tb.innerHTML='';
-  unidades.forEach(u=>{
-    tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td><td style="font-weight:700;color:#2e7d32;">${u.disp}</td><td>${u.total}</td><td>${BRLTT(u.valorDisp)}</td></tr>`;
+  unidades.forEach((u,i)=>{
+    tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td><td style="font-weight:700;color:#2e7d32;cursor:pointer;text-decoration:underline;" onclick="showDrillDownEstoque(${i})">${u.disp}</td><td>${u.total}</td><td>${BRLTT(u.valorDisp)}</td></tr>`;
   });
 }
 
