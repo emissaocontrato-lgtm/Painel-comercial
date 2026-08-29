@@ -666,7 +666,7 @@ function lO(){return{...baseO,plugins:{...baseO.plugins,tooltip:{callbacks:{labe
 const MS_CFG={
   periodo:{ph:'Todos os anos',sing:'ano'},
   canal:{ph:'Todos os canais',sing:'canal'},
-  status:{ph:'Todos os status',sing:'status'},
+  status:{ph:'Todos os status',sing:'status',map:{ATIVO:'Ativo',CANCELADO:'Cancelado','CANCELADO UPGRADE':'Cancelado Upgrade'}},
   origem:{ph:'Todas as origens',sing:'origem'},
 };
 function toggleMS(e,id){e.stopPropagation();const dd=document.getElementById('dd-'+id),btn=document.getElementById('btn-'+id),was=dd.classList.contains('open');closeAll();if(!was){dd.classList.add('open');btn.classList.add('open');}}
@@ -684,14 +684,17 @@ function updateBtn(id){
 function getSel(id){const chk=[...document.querySelectorAll(`[data-f="${id}"]:checked`)];return chk.length===0?null:chk.map(c=>c.value);}
 
 // ── PERSISTÊNCIA ──
-const LS_KEY='ldp_v19';
+const LS_KEY='ldp_v20';
 function saveFilters(){const s={canal:[...document.querySelectorAll('[data-f="canal"]:checked')].map(c=>c.value),status:[...document.querySelectorAll('[data-f="status"]:checked')].map(c=>c.value),origem:[...document.querySelectorAll('[data-f="origem"]:checked')].map(c=>c.value),dfYear:document.getElementById('df-year')?.textContent||'',dfMonths:[...document.querySelectorAll('.mc.on')].map(b=>b.dataset.m),dfFrom:document.getElementById('df-from')?.value||'',dfTo:document.getElementById('df-to')?.value||''};try{localStorage.setItem(LS_KEY,JSON.stringify(s));}catch(e){}}
 function applyDefaults(){
   const now=new Date(),y=now.getFullYear();
   const elY=document.getElementById('df-year');if(elY)elY.textContent=y;
   document.querySelectorAll('.mc').forEach(b=>b.classList.remove('on')); // nenhum mês = mostra ano inteiro
   document.querySelectorAll('[data-f="canal"]').forEach(cb=>{cb.checked=true;});
-  document.querySelectorAll('[data-f="status"]').forEach(cb=>{cb.checked=true;});
+  // Status: por padrao so Ativo (cancelados ficam de fora dos graficos gerais por
+  // padrao, alinhado com os KPIs/rankings que ja excluem cancelado sempre) - o
+  // usuario pode marcar Cancelado/Cancelado Upgrade manualmente se quiser ve-los.
+  document.querySelectorAll('[data-f="status"]').forEach(cb=>{cb.checked=cb.value==='ATIVO';});
   document.querySelectorAll('[data-f="origem"]').forEach(cb=>{cb.checked=true;});
 }
 function loadFilters(){
@@ -833,18 +836,14 @@ function renderKPIs(data){
   document.getElementById('kpi-vgv').innerHTML=BRLTT(totalVgv);
   document.getElementById('kpi-ticket').innerHTML=BRLTT(ticket);
   // KPIs Pendentes (col B = "pendente")
-  const pendAll=CONTRATOS.filter(c=>c.pend&&c.s2!=='CANCELADO');
+  const pendAll=CONTRATOS.filter(c=>c.pend&&c.s2!=='CANCELADO'&&c.s2!=='CANCELADO UPGRADE');
   const elPN=document.getElementById('kpi-pend-n');
   const elPV=document.getElementById('kpi-pend-vgv');
   if(elPN)elPN.textContent=pendAll.length+' contrato'+(pendAll.length!==1?'s':'');
   if(elPV)elPV.textContent=BRL(pendAll.reduce((a,c)=>a+vgv(c),0));
 
-  // KPIs Desistência (Status1 ≠ ASSINADO e Status2 = CANCELADO)
-  const desist=CONTRATOS.filter(c=>c.s1&&c.s1!=='ASSINADO'&&(c.s2==='CANCELADO'||c.s2==='CANCELADO UPGRADE'));
-  const elDN=document.getElementById('kpi-desist-n');
-  const elDV=document.getElementById('kpi-desist-vgv');
-  if(elDN)elDN.textContent=desist.length+' contrato'+(desist.length!==1?'s':'');
-  if(elDV)elDV.textContent=BRL(desist.reduce((a,c)=>a+vgv(c),0));
+  // KPIs Desistência: computados em renderDistratos() (mesmos IDs kpi-desist-n/vgv,
+  // que roda depois no renderAll() - exige c.dc, mais completo que so s1/s2).
 
   // KPIs Liner
   const lm=buildLinerMap(data);
@@ -1127,7 +1126,7 @@ function renderContratos(data){
 
 function calcPeriodo(pred){
   const ativos=CONTRATOS.filter(c=>!c.pend&&pred(c)&&c.s2==='ATIVO');
-  const cancel=CONTRATOS.filter(c=>!c.pend&&pred(c)&&c.s2==='CANCELADO');
+  const cancel=CONTRATOS.filter(c=>!c.pend&&pred(c)&&(c.s2==='CANCELADO'||c.s2==='CANCELADO UPGRADE'));
   const vgvTotal=sum(ativos.map(vgv));
   const n=ativos.length;
   const totalFechado=n+cancel.length;
@@ -1499,7 +1498,7 @@ document.addEventListener('fullscreenchange',()=>{
 });
 
 let lastInt=Date.now();
-const IDLE=2*60*1000,HOURS=[10,17];const REFRESH_MINUTE=10;let lastRefH=-1;
+const IDLE=2*60*1000,HOURS=[9,10,11,12,13,14,15,16,17];const REFRESH_MINUTE=10;let lastRefH=-1;
 ['mousemove','mousedown','keydown','touchstart','click'].forEach(ev=>{document.addEventListener(ev,()=>{lastInt=Date.now();},{passive:true});});
 function showToast(msg,dur=4000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
 async function doReload(){
@@ -1511,6 +1510,8 @@ async function doReload(){
     const m=text.match(/let CONTRATOS = (\[[\s\S]*?\]);/);
     if(!m)throw new Error('Dados não encontrados');
     CONTRATOS=JSON.parse(m[1]);
+    const mEst=text.match(/let ESTOQUE = (\[[\s\S]*?\]);/);
+    if(mEst)ESTOQUE=JSON.parse(mEst[1]);
     loadFilters();renderAll();
     document.getElementById('data-atualiz').textContent='Atualizado: '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     showToast('✅ Dados atualizados!',3000);
@@ -1525,75 +1526,6 @@ setInterval(()=>{const now=new Date(),h=now.getHours(),m=now.getMinutes();
 if(HOURS.includes(h)&&m>=REFRESH_MINUTE&&m<REFRESH_MINUTE+5&&lastRefH!==h){lastRefH=h;tryRefresh(h);}
 },60000);
 document.getElementById('data-atualiz').textContent='Atualizado: '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-
-// ── GOOGLE SHEETS INTEGRATION ──
-function parseCSVText(text){
-  const rows=[];let row=[],field='',inQ=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(inQ){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else inQ=false;}else field+=c;}
-    else if(c==='"')inQ=true;
-    else if(c===','){row.push(field);field='';}
-    else if(c==='\n'||(c==='\r'&&text[i+1]==='\n')){if(c==='\r')i++;row.push(field);field='';rows.push(row);row=[];}
-    else field+=c;
-  }
-  if(row.length||field){row.push(field);rows.push(row);}
-  return rows;
-}
-function toISO(s){
-  if(!s)return'';s=s.trim();
-  if(!s||s==='-'||s.startsWith('1/0/'))return'';
-  const p=s.split('/');if(p.length!==3)return'';
-  if(p[0].length===4)return p[0]+'-'+p[1].padStart(2,'0')+'-'+p[2].padStart(2,'0');
-  return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');
-}
-function parseBRL(s){
-  if(!s||s.trim()==='-')return 0;
-  // Formato BR (ponto=milhar, vírgula=decimal): remove pontos, troca vírgula por ponto
-  return parseFloat(s.replace(/R\$\s?/g,'').replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.'))||0;
-}
-function lp(s){return(s||'').trim().replace(/^-+$/,'');}
-async function loadFromSheets(){
-  const el=document.getElementById('ldp-load-txt');
-  document.getElementById('ldp-loading')?.classList.add('show');
-  try{
-    if(el)el.textContent='Carregando dados da planilha...';
-    const resp=await fetch('https://docs.google.com/spreadsheets/d/1L9JfaPaHrSsoG9STW8S4PH6tLsEtFEsh/export?format=csv&sheet=Consulta%20Contratos&t='+Date.now());
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const text=await resp.text();
-    const rows=parseCSVText(text);
-    const result=[];
-    for(let i=1;i<rows.length;i++){
-      const r=rows[i];
-      const idN=parseInt(r[0]);
-      if(!r||isNaN(idN)||idN<=0)continue;
-      const dvRaw=lp(r[1]);
-      const isPend=dvRaw.toLowerCase()==='pendente';
-      const dvISO=isPend?new Date().toISOString().substring(0,10):toISO(r[1]);
-      const y=dvISO?parseInt(dvISO.substring(0,4)):0;
-      const m=dvISO?parseInt(dvISO.substring(5,7)):0;
-      if(!isPend&&(y<2018||y>2035))continue;
-      result.push({
-        id:idN,dv:dvISO,dc:toISO(r[9]),
-        cli:lp(r[2]),fr:lp(r[3]),pr:lp(r[4]),
-        s2:lp(r[8]),
-        c1:lp(r[10]),c2:lp(r[11]),ger:lp(r[12]),
-        can:lp(r[13]),ori:lp(r[15]),uf:lp(r[18]),
-        v:parseBRL(r[25]),cap:lp(r[26]||''),
-        pend:isPend||(lp(r[7])!=='ASSINADO'&&lp(r[8])!=='CANCELADO'),
-        y:y,m:m
-      });
-    }
-    CONTRATOS=result;
-    if(el)el.textContent=result.length+' contratos carregados';
-  }catch(e){
-    console.error('loadFromSheets:',e);
-    if(el)el.textContent='Erro ao carregar: '+e.message;
-    
-  }finally{
-    document.getElementById('ldp-loading')?.classList.remove('show');
-  }
-}
 
 try{loadFilters();renderAll();}catch(e){document.title='ERROR: '+e.message;console.error('INIT ERROR',e);}
 </script>
