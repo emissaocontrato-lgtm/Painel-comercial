@@ -1018,12 +1018,15 @@ function showDrillDownEstoque(idx,tipo){
   document.getElementById('dd-title').textContent='Bloco '+u.bloco+' — Unidade '+u.uh;
   if(tipo==='bloq'){
     document.getElementById('dd-summary').textContent=u.bloq+' fração(ões) bloqueada(s) · Valor Total Bloqueado: '+BRL(u.valorBloq);
+  }else if(tipo==='vend'){
+    const qtdVend=u.fracoes.filter(f=>f.status==='VENDIDA').length;
+    document.getElementById('dd-summary').textContent=qtdVend+' fração(ões) vendida(s)';
   }else{
     document.getElementById('dd-summary').textContent=u.disp+' fração(ões) disponível(is) · Valor Total Disponível: '+BRL(u.valorDisp);
   }
   const tb=document.getElementById('dd-tbody');tb.innerHTML='';
   const cor={DISPONIVEL:'#2e7d32',VENDIDA:'#8a8a72',BLOQUEADA:'#c62828',BLOQADMIN:'#c62828'};
-  const destaque=tipo==='bloq'?(s=>s==='BLOQUEADA'||s==='BLOQADMIN'?0:1):(s=>s==='DISPONIVEL'?0:1);
+  const destaque=tipo==='bloq'?(s=>s==='BLOQUEADA'||s==='BLOQADMIN'?0:1):tipo==='vend'?(s=>s==='VENDIDA'?0:1):(s=>s==='DISPONIVEL'?0:1);
   [...u.fracoes].sort((a,b)=>destaque(a.status)-destaque(b.status)||String(a.cota).localeCompare(String(b.cota),undefined,{numeric:true})).forEach(f=>{
     tb.innerHTML+=`<tr><td>${f.ident||f.cota}</td><td style="color:${cor[f.status]||'#010f2a'};font-weight:600;">${f.status}</td><td>${f.semanas||'—'}</td><td>${f.tipo||'—'}</td><td class="val">${BRLTT(f.valor||0)}</td></tr>`;
   });
@@ -1401,7 +1404,7 @@ function renderTabelaEstoque(){
     if(e.status==='DISPONIVEL'){porUnidade[k].disp++;porUnidade[k].valorDisp+=(e.valor||0);}
     if(e.status==='BLOQUEADA'||e.status==='BLOQADMIN'){porUnidade[k].bloq++;porUnidade[k].valorBloq+=(e.valor||0);}
   });
-  let unidades=Object.values(porUnidade).filter(u=>u.disp>0||u.bloq>0)
+  let unidades=Object.values(porUnidade).filter(u=>u.disp>0||u.bloq>0||u.bloco==='Vaga')
     .sort((a,b)=>a.bloco===b.bloco?((parseInt(a.uh)||0)-(parseInt(b.uh)||0)):a.bloco.localeCompare(b.bloco));
   const busca=(document.getElementById('estoque-busca')?.value||'').trim().toUpperCase();
   if(busca){
@@ -1427,8 +1430,11 @@ function renderTabelaEstoque(){
     const celPlanta=planta?`<button class="bloco-btn" onclick="abrirPlanta('${planta}','${u.bloco} ${u.uh}')" title="Ver planta da unidade">📐 Ver</button>`:'<span style="color:#888899;">—</span>';
     const celDisp=u.disp>0?`<td style="font-weight:700;color:#2e7d32;cursor:pointer;text-decoration:underline;" onclick="showDrillDownEstoque(${i},'disp')">${u.disp}</td>`:`<td>0</td>`;
     const celBloq=u.bloq>0?`<td style="font-weight:700;color:#c62828;cursor:pointer;text-decoration:underline;" onclick="showDrillDownEstoque(${i},'bloq')">${u.bloq}</td>`:`<td>0</td>`;
+    const totalmenteVendida=u.disp===0&&u.bloq===0&&u.total>0;
     const valorExibir=u.disp>0?u.valorDisp:u.valorBloq;
-    const celValor=u.disp>0?`<td>${BRLTT(valorExibir)}</td>`:`<td style="color:#888899;">${BRLTT(valorExibir)} <span style="font-size:10px;">(bloqueado)</span></td>`;
+    const celValor=totalmenteVendida
+      ?`<td style="color:#8a8a72;font-style:italic;cursor:pointer;" onclick="showDrillDownEstoque(${i},'vend')">Vendida</td>`
+      :(u.disp>0?`<td>${BRLTT(valorExibir)}</td>`:`<td style="color:#888899;">${BRLTT(valorExibir)} <span style="font-size:10px;">(bloqueado)</span></td>`);
     tb.innerHTML+=`<tr><td>${u.bloco}</td><td>${u.uh}</td><td>${u.tipo||'—'}</td><td>${u.semanas||'—'}</td>${celDisp}${celBloq}<td>${u.total}</td>${celValor}<td>${celPlanta}</td></tr>`;
   });
 }
