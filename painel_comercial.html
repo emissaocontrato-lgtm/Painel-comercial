@@ -450,22 +450,22 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
       <div class="tab-panel" id="tab-distratos">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;">
           <div class="chart-card" style="grid-column:span 2;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
-            <div style="border-right:1px solid #e5ded4;padding-right:8px;">
+            <div style="border-right:1px solid #e5ded4;padding-right:8px;cursor:pointer;" onclick="drillDistratos('distrato')" title="Ver contratos">
               <div class="kpi-label" style="color:#c62828;">DISTRATOS (assinou e cancelou)</div>
               <div class="kpi-value" style="color:#c62828;" id="kpi-distrato-n">—</div>
               <div class="kpi-label" id="kpi-distrato-vgv">—</div>
             </div>
-            <div style="border-right:1px solid #e5ded4;padding-right:8px;">
+            <div style="border-right:1px solid #e5ded4;padding-right:8px;cursor:pointer;" onclick="drillDistratos('desistencia')" title="Ver contratos">
               <div class="kpi-label" style="color:#E65100;">DESISTÊNCIAS (não assinou)</div>
               <div class="kpi-value" style="color:#E65100;" id="kpi-desist-n">—</div>
               <div class="kpi-label" id="kpi-desist-vgv">—</div>
             </div>
-            <div style="border-right:1px solid #e5ded4;padding-right:8px;">
+            <div style="border-right:1px solid #e5ded4;padding-right:8px;cursor:pointer;" onclick="drillDistratos('distrato')" title="Ver contratos de distrato (numerador do %)">
               <div class="kpi-label">% DISTRATO</div>
               <div class="kpi-value" id="kpi-pct-distrato">—</div>
               <div class="kpi-label">sobre vendas efetivadas</div>
             </div>
-            <div>
+            <div style="cursor:pointer;" onclick="drillDistratos('cancelado')" title="Ver contratos">
               <div class="kpi-label">TOTAL CANCELADO</div>
               <div class="kpi-value" id="kpi-cancel-tot">—</div>
               <div class="kpi-label" id="kpi-cancel-vgv">—</div>
@@ -1041,6 +1041,12 @@ function sBadge(s2){
 
 // Distrato = assinou (s1=ASSINADO) e cancelou | Desistência = não assinou e cancelou
 const isDistrato=c=>c.s1==='ASSINADO';
+let _ddDistratos=[],_ddDesistencias=[],_ddCancelados=[];
+function drillDistratos(tipo){
+  if(tipo==='distrato')showDrillDown('❌ Distratos (assinou e cancelou)',_ddDistratos);
+  else if(tipo==='desistencia')showDrillDown('🚫 Desistências (não assinou)',_ddDesistencias);
+  else if(tipo==='cancelado')showDrillDown('🚫 Total Cancelado',_ddCancelados);
+}
 function renderDistratos(data){
   const ML=MESES.slice(1);
   // Usa a data de cancelamento (dc) para agrupar, igual ao Excel "Posição de Vendas Líquidas"
@@ -1057,14 +1063,19 @@ function renderDistratos(data){
   const setTit=(id,t)=>{const el=document.getElementById(id);if(el&&t)el.textContent=t;};
   setTit('tit-distratos-ano',titFn(anosDist));setTit('tit-pct-distrato-ano',titFn(anosDist));
   setTit('tit-desist-ano',titFn(anosDesist));setTit('tit-pct-desist-ano',titFn(anosDesist));
-  // Anos dos ativos (para o % de distrato/desistência)
-  const anos=[...new Set([...anosD,...data.filter(c=>c.s2==='ATIVO').map(c=>c.y)])].filter(y=>y>0).sort();
-  const ativosAnos=anos.map(ano=>{const v=Array(12).fill(0);data.filter(c=>c.y===ano&&c.s2==='ATIVO').forEach(c=>{if(c.m>0)v[c.m-1]+=vgv(c);});return v;});
+  // Anos dos ativos (para o % de distrato/desistência). Usa CONTRATOS (todo o
+  // historico) e nao `data` (que so reflete o filtro de topo/ano selecionado) -
+  // os distratos/desistencias acima ja sao sempre historico completo, entao o
+  // "ativos" usado como base do % tem que ser a mesma base, senao a % fica sem
+  // sentido (ex: distrato de todos os anos dividido por vendas de 1 mes so).
+  const anos=[...new Set([...anosD,...CONTRATOS.filter(c=>c.s2==='ATIVO').map(c=>c.y)])].filter(y=>y>0).sort();
+  const ativosAnos=anos.map(ano=>{const v=Array(12).fill(0);CONTRATOS.filter(c=>c.y===ano&&c.s2==='ATIVO').forEach(c=>{if(c.m>0)v[c.m-1]+=vgv(c);});return v;});
 
   // ── KPIs ──
   const distVgv=distratos.reduce((a,c)=>a+vgv(c),0);
   const desVgv=desistencias.reduce((a,c)=>a+vgv(c),0);
-  const efTot=data.filter(c=>c.s2==='ATIVO').reduce((a,c)=>a+vgv(c),0);
+  const efTot=CONTRATOS.filter(c=>c.s2==='ATIVO').reduce((a,c)=>a+vgv(c),0);
+  _ddDistratos=distratos;_ddDesistencias=desistencias;_ddCancelados=cancelados;
   document.getElementById('kpi-distrato-n').textContent=distratos.length+' contrato'+(distratos.length!==1?'s':'');
   document.getElementById('kpi-distrato-vgv').textContent=BRL(distVgv);
   document.getElementById('kpi-desist-n').textContent=desistencias.length+' contrato'+(desistencias.length!==1?'s':'');
