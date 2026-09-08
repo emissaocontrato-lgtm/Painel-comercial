@@ -685,11 +685,16 @@ function getSel(id){const chk=[...document.querySelectorAll(`[data-f="${id}"]:ch
 
 // ── PERSISTÊNCIA ──
 const LS_KEY='ldp_v20';
-function saveFilters(){const now=new Date();const s={canal:[...document.querySelectorAll('[data-f="canal"]:checked')].map(c=>c.value),status:[...document.querySelectorAll('[data-f="status"]:checked')].map(c=>c.value),origem:[...document.querySelectorAll('[data-f="origem"]:checked')].map(c=>c.value),dfYear:document.getElementById('df-year')?.textContent||'',dfMonths:[...document.querySelectorAll('.mc.on')].map(b=>b.dataset.m),dfFrom:document.getElementById('df-from')?.value||'',dfTo:document.getElementById('df-to')?.value||'',savedYM:`${now.getFullYear()}-${now.getMonth()+1}`};try{localStorage.setItem(LS_KEY,JSON.stringify(s));}catch(e){}}
+function saveFilters(){const s={canal:[...document.querySelectorAll('[data-f="canal"]:checked')].map(c=>c.value),status:[...document.querySelectorAll('[data-f="status"]:checked')].map(c=>c.value),origem:[...document.querySelectorAll('[data-f="origem"]:checked')].map(c=>c.value),dfFrom:document.getElementById('df-from')?.value||'',dfTo:document.getElementById('df-to')?.value||''};try{localStorage.setItem(LS_KEY,JSON.stringify(s));}catch(e){}}
+function selecionarMesAtual(){
+  // Padrao sempre e o mes/ano atual destacado - nao fica preso num mes antigo
+  // e nao depende do usuario escolher (confirmado pela usuaria).
+  const now=new Date();
+  const elY=document.getElementById('df-year');if(elY)elY.textContent=now.getFullYear();
+  document.querySelectorAll('.mc').forEach(b=>b.classList.toggle('on',b.dataset.m===String(now.getMonth()+1)));
+}
 function applyDefaults(){
-  const now=new Date(),y=now.getFullYear();
-  const elY=document.getElementById('df-year');if(elY)elY.textContent=y;
-  document.querySelectorAll('.mc').forEach(b=>b.classList.remove('on')); // nenhum mês = mostra ano inteiro
+  selecionarMesAtual();
   document.querySelectorAll('[data-f="canal"]').forEach(cb=>{cb.checked=true;});
   // Status: por padrao so Ativo (cancelados ficam de fora dos graficos gerais por
   // padrao, alinhado com os KPIs/rankings que ja excluem cancelado sempre) - o
@@ -699,18 +704,11 @@ function applyDefaults(){
 }
 function loadFilters(){
   let s=null;try{s=JSON.parse(localStorage.getItem(LS_KEY));}catch(e){}
-  if(s&&s.dfYear){
+  if(s){
     ['canal','status','origem'].forEach(id=>{const vals=s[id]||[];document.querySelectorAll(`[data-f="${id}"]`).forEach(cb=>{cb.checked=vals.includes(cb.value);});});
-    // Se um unico mes especifico estava selecionado (nao o ano inteiro) e o mes
-    // real ja virou desde a ultima vez que o painel foi salvo, avanca a
-    // selecao pro mes atual em vez de deixar presa no mes antigo pra sempre.
-    const now=new Date(),nowYM=`${now.getFullYear()}-${now.getMonth()+1}`;
-    if(s.dfMonths&&s.dfMonths.length===1&&s.savedYM&&s.savedYM!==nowYM){
-      s.dfYear=String(now.getFullYear());
-      s.dfMonths=[String(now.getMonth()+1)];
-    }
-    const elY=document.getElementById('df-year');if(elY)elY.textContent=s.dfYear;
-    if(s.dfMonths)document.querySelectorAll('.mc').forEach(b=>b.classList.toggle('on',(s.dfMonths||[]).includes(b.dataset.m)));
+    // Mes/ano NAO fica salvo - sempre abre no mes atual (pedido explicito da
+    // usuaria), so canal/status/origem/intervalo customizado persistem.
+    selecionarMesAtual();
     const elF=document.getElementById('df-from'),elT=document.getElementById('df-to');
     if(elF)elF.value=s.dfFrom||'';if(elT)elT.value=s.dfTo||'';
   }else{applyDefaults();}
