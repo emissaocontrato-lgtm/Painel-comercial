@@ -1515,7 +1515,10 @@ document.addEventListener('fullscreenchange',()=>{
 });
 
 let lastInt=Date.now();
-const IDLE=2*60*1000,HOURS=[9,10,11,12,13,14,15,16,17];const REFRESH_MINUTE=10;let lastRefH=-1;
+// HOURS cobre o dia todo (0-23) - o painel fica ligado 24h numa TV de corredor,
+// entao precisa continuar buscando dados novos e corrigindo o mes em destaque
+// (virada de mes/dia) mesmo fora do horario comercial, nao so das 9h-17h.
+const IDLE=2*60*1000,HOURS=Array.from({length:24},(_,i)=>i);const REFRESH_MINUTE=10;let lastRefH=-1;
 ['mousemove','mousedown','keydown','touchstart','click'].forEach(ev=>{document.addEventListener(ev,()=>{lastInt=Date.now();},{passive:true});});
 function showToast(msg,dur=4000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
 async function doReload(){
