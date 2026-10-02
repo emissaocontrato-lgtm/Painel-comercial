@@ -686,12 +686,37 @@ function getSel(id){const chk=[...document.querySelectorAll(`[data-f="${id}"]:ch
 // ── PERSISTÊNCIA ──
 const LS_KEY='ldp_v20';
 function saveFilters(){const s={canal:[...document.querySelectorAll('[data-f="canal"]:checked')].map(c=>c.value),status:[...document.querySelectorAll('[data-f="status"]:checked')].map(c=>c.value),origem:[...document.querySelectorAll('[data-f="origem"]:checked')].map(c=>c.value),dfFrom:document.getElementById('df-from')?.value||'',dfTo:document.getElementById('df-to')?.value||''};try{localStorage.setItem(LS_KEY,JSON.stringify(s));}catch(e){}}
+// Mes de referencia do painel: o mes anterior so "fecha" no 3o dia util do mes
+// novo (segunda a sabado, feriado nao conta) - regra interna da usuaria. Antes
+// disso o painel continua no mes anterior. Feriados nacionais + RS (20/09);
+// feriado municipal de Canela nao entra.
+function _pascoa(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+  return new Date(y,Math.floor((h+l-7*m+114)/31)-1,((h+l-7*m+114)%31)+1);
+}
+function _feriadosNacionais(y){
+  const f=new Set(),add=(m,d)=>f.add(m+'-'+d);
+  [[1,1],[4,21],[5,1],[9,7],[9,20],[10,12],[11,2],[11,15],[11,20],[12,25]].forEach(([m,d])=>add(m,d));
+  const p=_pascoa(y);
+  [-48,-47,-2,60].forEach(n=>{const x=new Date(p);x.setDate(x.getDate()+n);add(x.getMonth()+1,x.getDate());}); // carnaval, sexta santa, corpus christi
+  return f;
+}
+function mesReferencia(now){
+  const y=now.getFullYear(),m=now.getMonth(),fer=_feriadosNacionais(y);
+  let diasUteis=0;
+  for(let d=1;d<=now.getDate();d++){
+    if(new Date(y,m,d).getDay()===0||fer.has((m+1)+'-'+d))continue;
+    diasUteis++;
+  }
+  if(diasUteis>=3)return{y,m:m+1};
+  return m===0?{y:y-1,m:12}:{y,m};
+} // fim mesReferencia
 function selecionarMesAtual(){
-  // Padrao sempre e o mes/ano atual destacado - nao fica preso num mes antigo
-  // e nao depende do usuario escolher (confirmado pela usuaria).
-  const now=new Date();
-  const elY=document.getElementById('df-year');if(elY)elY.textContent=now.getFullYear();
-  document.querySelectorAll('.mc').forEach(b=>b.classList.toggle('on',b.dataset.m===String(now.getMonth()+1)));
+  // Padrao e sempre o mes de referencia destacado (ver mesReferencia) - nao fica
+  // preso num mes antigo e nao depende do usuario escolher.
+  const ref=mesReferencia(new Date());
+  const elY=document.getElementById('df-year');if(elY)elY.textContent=ref.y;
+  document.querySelectorAll('.mc').forEach(b=>b.classList.toggle('on',b.dataset.m===String(ref.m)));
 }
 function applyDefaults(){
   selecionarMesAtual();
@@ -1166,7 +1191,7 @@ let _compInit=false;
 function initComparativoSelects(){
   if(_compInit)return;
   _compInit=true;
-  const hoje=new Date(),yNow=hoje.getFullYear(),mNow=hoje.getMonth()+1;
+  const ref=mesReferencia(new Date()),yNow=ref.y,mNow=ref.m;
   const paresMes=_paresMesTodos();
   const optsMes=_optsMesHTML(paresMes);
   const elA=document.getElementById('comp-mes-a'),elB=document.getElementById('comp-mes-b');
