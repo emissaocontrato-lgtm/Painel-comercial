@@ -98,6 +98,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
 .tab-panels{flex:1;overflow:hidden;display:flex;flex-direction:column;}
 .tab-panel{display:none;flex:1;overflow:auto;padding:12px;}
 .tab-panel.active{display:flex;flex-direction:column;gap:10px;}
+.dd-click{cursor:pointer;}
+tr.dd-click:hover td,td.dd-click:hover{background:#f3ece0;}
+.kpi-card[onclick]{cursor:pointer;}
+.kpi-card[onclick]:hover{box-shadow:0 0 0 2px #c9b78a;}
 
 /* CARDS */
 .chart-card{background:#ffffff;border-radius:9px;padding:12px 14px;border:1px solid #e5ded4;display:flex;flex-direction:column;overflow:visible;transition:border-color .2s;}
@@ -230,19 +234,19 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
     </div>
 
     <div class="section-label">Geral</div>
-    <div class="kpi-card"><div class="kpi-icon">👥</div><div><div class="kpi-label">Clientes</div><div class="kpi-value" id="kpi-clientes">—</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">🏠</div><div><div class="kpi-label">Frações</div><div class="kpi-value" id="kpi-fracoes">—</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">💰</div><div><div class="kpi-label">Vendas Efetivadas</div><div class="kpi-value" id="kpi-vendas">—</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">📈</div><div><div class="kpi-label">VGV Total</div><div class="kpi-value" id="kpi-vgv">—</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon">🎯</div><div><div class="kpi-label">Ticket Médio</div><div class="kpi-value" id="kpi-ticket">—</div></div></div>
+    <div class="kpi-card" onclick="drillKpi('clientes')" title="Clique para ver o detalhe"><div class="kpi-icon">👥</div><div><div class="kpi-label">Clientes</div><div class="kpi-value" id="kpi-clientes">—</div></div></div>
+    <div class="kpi-card" onclick="drillKpi('fracoes')" title="Clique para ver o detalhe"><div class="kpi-icon">🏠</div><div><div class="kpi-label">Frações</div><div class="kpi-value" id="kpi-fracoes">—</div></div></div>
+    <div class="kpi-card" onclick="drillKpi('efetivadas')" title="Clique para ver o detalhe"><div class="kpi-icon">💰</div><div><div class="kpi-label">Vendas Efetivadas</div><div class="kpi-value" id="kpi-vendas">—</div></div></div>
+    <div class="kpi-card" onclick="drillKpi('vgv')" title="Clique para ver o detalhe"><div class="kpi-icon">📈</div><div><div class="kpi-label">VGV Total</div><div class="kpi-value" id="kpi-vgv">—</div></div></div>
+    <div class="kpi-card" onclick="drillKpi('ticket')" title="Clique para ver o detalhe"><div class="kpi-icon">🎯</div><div><div class="kpi-label">Ticket Médio</div><div class="kpi-value" id="kpi-ticket">—</div></div></div>
 
-    <div class="kpi-card" style="border-color:#FB8C00;"><div class="kpi-icon">⏳</div><div><div class="kpi-label">Ag. Assinatura</div><div class="kpi-value" style="color:#E65100;" id="kpi-pend-n">—</div><div class="kpi-label" style="margin-top:2px;" id="kpi-pend-vgv">—</div></div></div>    <div class="section-label" style="margin-top:4px;">Liner</div>
-    <div class="kpi-card liner"><div class="kpi-icon">🎤</div><div><div class="kpi-label">VGV Liner</div><div class="kpi-value" id="kpi-liner">—</div></div></div>
-    <div class="kpi-card liner"><div class="kpi-icon">🤝</div><div><div class="kpi-label">Vendas Liner</div><div class="kpi-value" id="kpi-liner-n">—</div></div></div>
+    <div class="kpi-card" style="border-color:#FB8C00;" onclick="drillKpi('pend')" title="Clique para ver o detalhe"><div class="kpi-icon">⏳</div><div><div class="kpi-label">Ag. Assinatura</div><div class="kpi-value" style="color:#E65100;" id="kpi-pend-n">—</div><div class="kpi-label" style="margin-top:2px;" id="kpi-pend-vgv">—</div></div></div>    <div class="section-label" style="margin-top:4px;">Liner</div>
+    <div class="kpi-card liner" onclick="drillKpi('liner')" title="Clique para ver o detalhe"><div class="kpi-icon">🎤</div><div><div class="kpi-label">VGV Liner</div><div class="kpi-value" id="kpi-liner">—</div></div></div>
+    <div class="kpi-card liner" onclick="drillKpi('liner')" title="Clique para ver o detalhe"><div class="kpi-icon">🤝</div><div><div class="kpi-label">Vendas Liner</div><div class="kpi-value" id="kpi-liner-n">—</div></div></div>
 
     <div class="section-label" style="margin-top:4px;">Concierge</div>
-    <div class="kpi-card" style="border-color:#9c27b055;"><div class="kpi-icon">🎩</div><div><div class="kpi-label">VGV Concierge</div><div class="kpi-value" style="color:#ab47bc;" id="kpi-concierge">—</div></div></div>
-    <div class="kpi-card" style="border-color:#9c27b055;"><div class="kpi-icon">📋</div><div><div class="kpi-label">Vendas Concierge</div><div class="kpi-value" style="color:#ab47bc;" id="kpi-concierge-n">—</div></div></div>
+    <div class="kpi-card" style="border-color:#9c27b055;" onclick="drillKpi('conc')" title="Clique para ver o detalhe"><div class="kpi-icon">🎩</div><div><div class="kpi-label">VGV Concierge</div><div class="kpi-value" style="color:#ab47bc;" id="kpi-concierge">—</div></div></div>
+    <div class="kpi-card" style="border-color:#9c27b055;" onclick="drillKpi('conc')" title="Clique para ver o detalhe"><div class="kpi-icon">📋</div><div><div class="kpi-label">Vendas Concierge</div><div class="kpi-value" style="color:#ab47bc;" id="kpi-concierge-n">—</div></div></div>
   </div>
 
   <!-- CONTENT -->
@@ -570,11 +574,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
         </div>
         <div id="est-revenda" style="display:none;flex-direction:column;gap:10px;flex:1;min-height:0;">
           <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex-shrink:0;">
-            <div class="kpi-card"><div class="kpi-icon">📥</div><div><div class="kpi-label">Entraram em Revenda</div><div class="kpi-value" id="rev-total">—</div></div></div>
-            <div class="kpi-card"><div class="kpi-icon">📤</div><div><div class="kpi-label">Saídas (Revendidas)</div><div class="kpi-value" id="rev-vendidas">—</div><div class="kpi-sub" id="rev-vendidas-sub" style="font-size:10px;color:#8a8a72;"></div></div></div>
-            <div class="kpi-card"><div class="kpi-icon">🟢</div><div><div class="kpi-label">Disponíveis p/ Revenda</div><div class="kpi-value" id="rev-disp">—</div></div></div>
-            <div class="kpi-card"><div class="kpi-icon">💰</div><div><div class="kpi-label">Valor de Tabela (contratos)</div><div class="kpi-value" id="rev-valor">—</div></div></div>
-            <div class="kpi-card"><div class="kpi-icon">🤝</div><div><div class="kpi-label">Valor Negociado (contratos)</div><div class="kpi-value" id="rev-negociado">—</div></div></div>
+            <div class="kpi-card" onclick="drillRevenda('total')" title="Clique para ver o detalhe"><div class="kpi-icon">📥</div><div><div class="kpi-label">Entraram em Revenda</div><div class="kpi-value" id="rev-total">—</div></div></div>
+            <div class="kpi-card" onclick="drillRevenda('vend')" title="Clique para ver o detalhe"><div class="kpi-icon">📤</div><div><div class="kpi-label">Saídas (Revendidas)</div><div class="kpi-value" id="rev-vendidas">—</div><div class="kpi-sub" id="rev-vendidas-sub" style="font-size:10px;color:#8a8a72;"></div></div></div>
+            <div class="kpi-card" onclick="drillRevenda('disp')" title="Clique para ver o detalhe"><div class="kpi-icon">🟢</div><div><div class="kpi-label">Disponíveis p/ Revenda</div><div class="kpi-value" id="rev-disp">—</div></div></div>
+            <div class="kpi-card" onclick="drillRevenda('total')" title="Clique para ver o detalhe"><div class="kpi-icon">💰</div><div><div class="kpi-label">Valor de Tabela (contratos)</div><div class="kpi-value" id="rev-valor">—</div></div></div>
+            <div class="kpi-card" onclick="drillRevenda('total')" title="Clique para ver o detalhe"><div class="kpi-icon">🤝</div><div><div class="kpi-label">Valor Negociado (contratos)</div><div class="kpi-value" id="rev-negociado">—</div></div></div>
           </div>
           <div class="chart-card" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
             <div class="card-header">
@@ -601,10 +605,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f4f4;color:#010f2a;he
         </div>
         <div id="est-normal" style="display:contents;">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex-shrink:0;">
-          <div class="kpi-card"><div class="kpi-icon">🏢</div><div><div class="kpi-label">Total de Frações (A/B/C)</div><div class="kpi-value" id="est-total">—</div></div></div>
-          <div class="kpi-card"><div class="kpi-icon">✅</div><div><div class="kpi-label">Vendidas</div><div class="kpi-value" id="est-vendidas">—</div></div></div>
-          <div class="kpi-card"><div class="kpi-icon">🟢</div><div><div class="kpi-label">Disponíveis</div><div class="kpi-value" id="est-disponiveis">—</div></div></div>
-          <div class="kpi-card"><div class="kpi-icon">🔒</div><div><div class="kpi-label">Bloqueadas</div><div class="kpi-value" id="est-bloqueadas">—</div></div></div>
+          <div class="kpi-card" onclick="drillEstoque('total')" title="Clique para ver o detalhe"><div class="kpi-icon">🏢</div><div><div class="kpi-label">Total de Frações (A/B/C)</div><div class="kpi-value" id="est-total">—</div></div></div>
+          <div class="kpi-card" onclick="drillEstoque('vend')" title="Clique para ver o detalhe"><div class="kpi-icon">✅</div><div><div class="kpi-label">Vendidas</div><div class="kpi-value" id="est-vendidas">—</div></div></div>
+          <div class="kpi-card" onclick="drillEstoque('disp')" title="Clique para ver o detalhe"><div class="kpi-icon">🟢</div><div><div class="kpi-label">Disponíveis</div><div class="kpi-value" id="est-disponiveis">—</div></div></div>
+          <div class="kpi-card" onclick="drillEstoque('bloq')" title="Clique para ver o detalhe"><div class="kpi-icon">🔒</div><div><div class="kpi-label">Bloqueadas</div><div class="kpi-value" id="est-bloqueadas">—</div></div></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;">
           <div class="chart-card">
@@ -875,6 +879,7 @@ function buildCorrMap(data){
 // ── RENDER ──
 function renderAll(){
   const data=getFiltered();
+  _ddData=data;
   renderKPIs(data);
   renderRanking(data);
   renderEquipe(data);
@@ -923,6 +928,16 @@ function renderKPIs(data){
   const nConc=Object.values(cm).reduce((a,o)=>a+o.n,0);
   document.getElementById('kpi-concierge').innerHTML=BRLTT(vgvConc);
   document.getElementById('kpi-concierge-n').textContent=nConc+' vendas';
+  // listas do drill-down de cada card (mesma base do numero mostrado)
+  const _ativosKpi=data.filter(c=>c.s2==='ATIVO');
+  _dd.clientes={titulo:'👥 Clientes (assinados e ativos)',lista:paraContarCliente,nota:clientes+' cliente(s): mesmo cliente + mesma unidade conta 1'};
+  _dd.fracoes={titulo:'🏠 Frações (assinadas e ativas)',lista:paraContarCliente};
+  _dd.efetivadas={titulo:'💰 Vendas Efetivadas',lista:_ativosKpi};
+  _dd.vgv={titulo:'📈 VGV Total',lista:_ativosKpi};
+  _dd.ticket={titulo:'🎯 Ticket Médio',lista:_ativosKpi,nota:'ticket = VGV ÷ clientes = '+BRL(ticket)};
+  _dd.pend={titulo:'⏳ Aguardando assinatura',lista:pendAll};
+  _dd.liner={titulo:'🎤 Vendas com Liner (2 corretores)',lista:groupIntegral(data.filter(isAtivo)).filter(c=>c.c2&&c.c2!==c.c1),nota:'vagas aparecem aqui, mas o card não as conta como venda'};
+  _dd.conc={titulo:'🎩 Vendas com Concierge',lista:groupConcierge(data),nota:'vagas aparecem aqui, mas o card não as conta como venda'};
 }
 
 function renderRanking(data){
@@ -955,7 +970,7 @@ function renderRanking(data){
   document.getElementById('badge-corretor').textContent=groupIntegral(data.filter(isAtivo)).length+' contratos';
   const tb=document.getElementById('tbody-corretor');tb.innerHTML='';const _tC=rank.reduce((s,[,o])=>({vgv:s.vgv+o.vgv,n:s.n+o.n}),{vgv:0,n:0});tb.innerHTML=`<tr class="tr-total"><td></td><td>TOTAL</td><td class="val">${BRLTT(_tC.vgv)}</td><td>${_tC.n}</td></tr>`;
   rank.forEach(([nome,obj],i)=>{
-    tb.innerHTML+=`<tr><td class="rank">${i===0?'⭐':''}${i+1}º</td><td>${nome}</td><td class="val">${BRLTT(obj.vgv)}</td><td>${obj.n}</td></tr>`;
+    tb.innerHTML+=`<tr class="dd-click" data-nome="${escA(nome)}" onclick="drillRank('corretor',this.dataset.nome)"><td class="rank">${i===0?'⭐':''}${i+1}º</td><td>${nome}</td><td class="val">${BRLTT(obj.vgv)}</td><td>${obj.n}</td></tr>`;
   });
 
   // Liner Showroom
@@ -969,7 +984,7 @@ function renderRanking(data){
     const _tL=rankL.reduce((s,[,o])=>({vgv:s.vgv+o.vgv,n:s.n+o.n}),{vgv:0,n:0});
     tbL.innerHTML=`<tr class="tr-total"><td></td><td>TOTAL</td><td class="val-liner">${BRLTT(_tL.vgv)}</td><td>${_tL.n}</td></tr>`;
     rankL.forEach(([nome,obj],i)=>{
-      tbL.innerHTML+=`<tr><td class="rank">${i===0?'⭐':''}${i+1}º</td><td>${nome}</td><td class="val-liner">${BRLTT(obj.vgv)}</td><td>${obj.n}</td></tr>`;
+      tbL.innerHTML+=`<tr class="dd-click" data-nome="${escA(nome)}" onclick="drillRank('liner',this.dataset.nome)"><td class="rank">${i===0?'⭐':''}${i+1}º</td><td>${nome}</td><td class="val-liner">${BRLTT(obj.vgv)}</td><td>${obj.n}</td></tr>`;
     });
   }
   // Concierge
@@ -983,7 +998,7 @@ function renderRanking(data){
     const _tK=rankC.reduce((s,[,o])=>({vgv:s.vgv+o.vgv,n:s.n+o.n}),{vgv:0,n:0});
     tbC.innerHTML=`<tr class="tr-total"><td></td><td>TOTAL</td><td class="val-conc" style="font-weight:700;color:#010f2a;">${BRLTT(_tK.vgv)}</td><td>${_tK.n}</td></tr>`;
     rankC.forEach(([nome,obj],i)=>{
-      tbC.innerHTML+=`<tr><td class="rank">${i===0?'⭐':''}${i+1}º</td><td>${nome}</td><td style="font-weight:700;color:#ab47bc;">${BRLTT(obj.vgv)}</td><td>${obj.n}</td></tr>`;
+      tbC.innerHTML+=`<tr class="dd-click" data-nome="${escA(nome)}" onclick="drillRank('conc',this.dataset.nome)"><td class="rank">${i===0?'⭐':''}${i+1}º</td><td>${nome}</td><td style="font-weight:700;color:#ab47bc;">${BRLTT(obj.vgv)}</td><td>${obj.n}</td></tr>`;
     });
   }
   // Equalize chart card heights
@@ -1007,7 +1022,7 @@ function renderEquipe(data){
   const ger={};data.forEach(c=>{if(!ger[c.ger])ger[c.ger]={vgv:0,n:0};ger[c.ger].vgv+=vgv(c);ger[c.ger].n++;});
   const sgg=Object.entries(ger).sort((a,b)=>b[1].vgv-a[1].vgv);
   const tb=document.getElementById('tbody-gerentes');tb.innerHTML='';
-  sgg.forEach(([n,o])=>{tb.innerHTML+=`<tr><td>${n}</td><td>${o.n}</td><td class="val">${BRLTT(o.vgv)}</td></tr>`;});
+  sgg.forEach(([n,o])=>{tb.innerHTML+=`<tr class="dd-click" data-nome="${escA(n)}" onclick="drillGerente(this.dataset.nome)"><td>${n}</td><td>${o.n}</td><td class="val">${BRLTT(o.vgv)}</td></tr>`;});
 }
 
 function renderFinanceiro(data){
@@ -1061,14 +1076,14 @@ function renderFinanceiro(data){
   data.forEach(c=>{const k=`${c.y||'?'}-${String(c.m||0).padStart(2,'0')}`;if(!resumo[k])resumo[k]={ano:c.y,mes:c.m,n:0,vgv:0};resumo[k].n++;resumo[k].vgv+=vgv(c);});
   const rows=Object.entries(resumo).sort((a,b)=>a[0].localeCompare(b[0]));
   const tb=document.getElementById('tbody-financeiro');tb.innerHTML='';
-  rows.forEach(([,o])=>{tb.innerHTML+=`<tr><td>${o.ano||'?'}</td><td>${MESES[o.mes]||o.mes}</td><td>${o.n}</td><td class="val">${BRLTT(o.vgv)}</td></tr>`;});
+  rows.forEach(([,o])=>{tb.innerHTML+=`<tr class="dd-click" onclick="drillMes(${o.ano||0},${o.mes||0})"><td>${o.ano||'?'}</td><td>${MESES[o.mes]||o.mes}</td><td>${o.n}</td><td class="val">${BRLTT(o.vgv)}</td></tr>`;});
 }
 
-function showDrillDown(title,contracts){
+function showDrillDown(title,contracts,nota){
   document.querySelector('#dd-table thead').innerHTML='<tr><th>#ID</th><th>Data</th><th>Cliente</th><th>Fração</th><th>Produto</th><th>Corretor</th><th>Canal</th><th>Gerente</th><th>VGV</th><th>Status</th></tr>';
   document.getElementById('dd-title').textContent=title;
   const tot=contracts.reduce((s,c)=>s+vgv(c),0);
-  document.getElementById('dd-summary').textContent=contracts.length+' contrato'+(contracts.length!==1?'s':'')+' · VGV Total: '+BRL(tot);
+  document.getElementById('dd-summary').textContent=contracts.length+' contrato'+(contracts.length!==1?'s':'')+' · VGV Total: '+BRL(tot)+(nota?' · '+nota:'');
   const tb=document.getElementById('dd-tbody');tb.innerHTML='';
   contracts.sort((a,b)=>vgv(b)-vgv(a)).forEach(c=>{
     tb.innerHTML+=`<tr><td>${c.id}</td><td>${c.dv||'—'}</td><td>${c.cli}</td><td>${c.fr||'—'}</td><td>${c.pr||'—'}</td><td>${c.c1||c.c2||'—'}</td><td>${c.can||'—'}</td><td>${c.ger||'—'}</td><td class="val">${BRLTT(vgv(c))}</td><td>${sBadge(c.s2)}</td></tr>`;
@@ -1098,6 +1113,65 @@ function showDrillDownEstoque(idx,tipo){
   document.getElementById('dd-modal').classList.add('open');
 }
 function closeDrillDown(){document.getElementById('dd-modal').classList.remove('open');}
+
+// ══════════ DRILL-DOWN EM TUDO: cards, rankings, analises, estoque e revenda ══════════
+const _dd={};            // listas de contratos por card (preenchidas nos renders)
+let _ddData=[];          // dados filtrados da tela (renderAll)
+const escA=s=>String(s??'').replace(/"/g,'&quot;');
+// agrupa frações da mesma venda por cliente+dia+unidade+concierge (igual ao card/ranking)
+function groupConcierge(data){const g={};data.filter(c=>c.cap&&isAtivo(c)).forEach(c=>{const k=`${c.cli}||${c.dv}||${c.pr}||${c.cap}`;if(!g[k])g[k]={...c,v:0,al:0};g[k].v+=c.v;g[k].al+=(c.al||0);});return Object.values(g);}
+function drillKpi(chave){
+  const d=_dd[chave];if(!d)return;
+  showDrillDown(d.titulo,[...d.lista],d.nota);
+}
+function drillRank(tipo,nome){
+  const data=_ddData||[];
+  if(tipo==='corretor'){
+    showDrillDown('🏆 Corretor: '+nome,groupIntegral(data.filter(isAtivo)).filter(c=>c.c1===nome||(c.c2&&c.c2!==c.c1&&c.c2===nome)),'o ranking divide o VGV 50/50 quando a venda tem 2 corretores');
+  }else if(tipo==='liner'){
+    showDrillDown('🎤 Liner: '+nome,groupIntegral(data.filter(isAtivo)).filter(c=>c.c1===nome&&c.c2&&c.c2!==c.c1));
+  }else{
+    showDrillDown('🎩 Concierge: '+nome,groupConcierge(data).filter(c=>c.cap===nome));
+  }
+}
+function drillGerente(nome){showDrillDown('👔 Gerente: '+(nome||'(sem gerente)'),(_ddData||[]).filter(c=>c.ger===nome));}
+function drillMes(ano,mes){showDrillDown('📅 '+(MESES[mes]||mes)+'/'+ano,(_ddData||[]).filter(c=>(c.y||0)===ano&&(c.m||0)===mes));}
+
+function showDrillFracoes(titulo,fracoes,nota){
+  document.querySelector('#dd-table thead').innerHTML='<tr><th>Bloco</th><th>Unidade</th><th>Fração</th><th>Status</th><th>Semanas</th><th>Tipo</th><th>Valor</th></tr>';
+  document.getElementById('dd-title').textContent=titulo;
+  const tot=fracoes.reduce((a,f)=>a+(f.valor||0),0);
+  document.getElementById('dd-summary').textContent=fracoes.length.toLocaleString('pt-BR')+' fração(ões) · Valor Total: '+BRL(tot)+(nota?' · '+nota:'');
+  const cor={DISPONIVEL:'#2e7d32',VENDIDA:'#8a8a72',BLOQUEADA:'#c62828',BLOQADMIN:'#c62828'};
+  const ord=[...fracoes].sort((a,b)=>String(a.bloco).localeCompare(String(b.bloco))||((parseInt(a.uh)||0)-(parseInt(b.uh)||0))||(parseInt(a.cota)||0)-(parseInt(b.cota)||0));
+  document.getElementById('dd-tbody').innerHTML=ord.map(f=>`<tr><td>${f.bloco}</td><td>${f.uh}</td><td>${f.ident||f.cota}</td><td style="color:${cor[f.status]||'#010f2a'};font-weight:600;">${f.status}</td><td>${f.semanas||'—'}</td><td>${f.tipo||'—'}</td><td class="val">${BRLTT(f.valor||0)}</td></tr>`).join('');
+  document.getElementById('dd-modal').classList.add('open');
+}
+function drillEstoque(tipo){
+  const base=_ultimoBaseEstoque||[];
+  const sel={total:()=>base,vend:()=>base.filter(e=>e.status==='VENDIDA'),disp:()=>base.filter(e=>e.status==='DISPONIVEL'),bloq:()=>base.filter(e=>e.status==='BLOQUEADA'||e.status==='BLOQADMIN')}[tipo];
+  const nome={total:'Todas as frações',vend:'Frações vendidas',disp:'Frações disponíveis',bloq:'Frações bloqueadas'}[tipo];
+  showDrillFracoes('🏢 '+nome+(_blocoFiltro==='TODOS'?'':' – Bloco '+_blocoFiltro),sel());
+}
+
+function showDrillRevenda(titulo,lista){
+  document.querySelector('#dd-table thead').innerHTML='<tr><th>Contrato</th><th>Cliente</th><th>Unidade</th><th>Fração</th><th>Situação</th><th>Valor de Tabela</th><th>Valor Negociado</th><th>Novo comprador</th><th>Valor da revenda</th></tr>';
+  document.getElementById('dd-title').textContent=titulo;
+  const sm=k=>lista.reduce((a,r)=>a+(r[k]||0),0);
+  document.getElementById('dd-summary').textContent=lista.length+' contrato'+(lista.length!==1?'s':'')+' · Valor de Tabela: '+BRL(sm('valorTabela'))+' · Valor Negociado: '+BRL(sm('valorNegociado'));
+  const esc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  document.getElementById('dd-tbody').innerHTML=lista.map(r=>{
+    const sit=_SIT_REV[_sitRev(r)],rv=r.revenda;
+    return `<tr><td style="font-weight:700;">${esc(r.contrato)}</td><td>${esc(r.cliente)||'—'}</td><td>${esc(r.unidade)}</td><td>${esc(r.fracao)||'—'}</td><td style="color:${sit.cor};font-weight:700;">${sit.pt} ${sit.txt}</td><td class="val">${r.valorTabela!=null?BRL_EXACT(r.valorTabela):'—'}</td><td class="val">${r.valorNegociado!=null?BRL_EXACT(r.valorNegociado):'—'}</td><td>${rv?esc(rv.comprador)+' ('+esc(rv.contrato)+')':'—'}</td><td class="val">${rv&&rv.valor!=null?BRL_EXACT(rv.valor):'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('dd-modal').classList.add('open');
+}
+function drillRevenda(tipo){
+  const l=REVENDA||[];
+  const f={total:l,vend:l.filter(r=>_sitRev(r)==='REVENDIDA'),disp:l.filter(r=>_sitRev(r)==='DISPONIVEL')}[tipo];
+  showDrillRevenda({total:'🔁 Todas as unidades que entraram em revenda',vend:'📤 Revendidas (saídas)',disp:'🟢 Disponíveis para revenda'}[tipo],f);
+}
+
 
 function sBadge(s2){
   if(s2==='ATIVO')return'<span class="badge-a">ATIVO</span>';
@@ -1262,16 +1336,26 @@ function renderComparativo(){
   const mesAnterior=calcPeriodo(c=>c.y===yAnt&&c.m===ymAnt);
   const anoAtual=calcPeriodo(c=>c.y===yAnoB&&c.m<=ateMes);
   const anoAnterior=calcPeriodo(c=>c.y===yAnoA&&c.m<=ateMes);
-  const linha=(label,pa,pb,fmt,inv)=>`<tr><td>${label}</td><td>${fmt(pa)}</td><td>${fmt(pb)}</td><td>${deltaHTML(pa,pb,inv)}</td></tr>`;
-  const tabela=(titA,titB,pA,pB)=>`<table class="perf-table" style="width:100%;"><thead><tr><th>Métrica</th><th>${titA}</th><th>${titB}</th><th>Δ</th></tr></thead><tbody>
+  const listaPeriodo=(pred,tipo)=>CONTRATOS.filter(c=>!c.pend&&pred(c)&&(tipo==='cancel'?(c.s2==='CANCELADO'||c.s2==='CANCELADO UPGRADE'):c.s2==='ATIVO'));
+  let _cmpN=0;
+  const tabela=(titA,titB,pA,pB,predA,predB)=>{
+    const id='cmp'+(_cmpN++);
+    [['A',titA,predA,pA],['B',titB,predB,pB]].forEach(([k,tit,pred,p])=>{
+      _dd[id+k]={titulo:'✅ '+tit+' – vendas efetivadas',lista:listaPeriodo(pred,'ativo')};
+      _dd[id+k+'c']={titulo:'❌ '+tit+' – cancelados',lista:listaPeriodo(pred,'cancel'),nota:'% cancelamento = cancelados ÷ (efetivadas + cancelados)'};
+    });
+    const cel=(v,fmt,k)=>`<td class="dd-click" onclick="drillKpi('${k}')">${fmt(v)}</td>`;
+    const linha=(label,pa,pb,fmt,inv,sufixo)=>`<tr><td>${label}</td>${cel(pa,fmt,id+'A'+(sufixo||''))}${cel(pb,fmt,id+'B'+(sufixo||''))}<td>${deltaHTML(pa,pb,inv)}</td></tr>`;
+    return `<table class="perf-table" style="width:100%;"><thead><tr><th>Métrica</th><th>${titA}</th><th>${titB}</th><th>Δ</th></tr></thead><tbody>
     ${linha('VGV',pA.vgv,pB.vgv,BRL,false)}
     ${linha('Vendas',pA.n,pB.n,v=>v,false)}
     ${linha('Ticket Médio',pA.ticket,pB.ticket,BRL,false)}
-    ${linha('% Cancelamento',pA.taxaCancel,pB.taxaCancel,v=>(v*100).toFixed(1)+'%',true)}
+    ${linha('% Cancelamento',pA.taxaCancel,pB.taxaCancel,v=>(v*100).toFixed(1)+'%',true,'c')}
   </tbody></table>`;
+  };
   document.getElementById('comparativo-grid').innerHTML=
-    `<div>${tabela(MESES[ymAnt]+'/'+yAnt,MESES[m]+'/'+y,mesAnterior,mesAtual)}</div>`+
-    `<div>${tabela(yAnoA+' (até '+MESES[ateMes]+')',yAnoB+' (até '+MESES[ateMes]+')',anoAnterior,anoAtual)}</div>`;
+    `<div>${tabela(MESES[ymAnt]+'/'+yAnt,MESES[m]+'/'+y,mesAnterior,mesAtual,c=>c.y===yAnt&&c.m===ymAnt,c=>c.y===y&&c.m===m)}</div>`+
+    `<div>${tabela(yAnoA+' (até '+MESES[ateMes]+')',yAnoB+' (até '+MESES[ateMes]+')',anoAnterior,anoAtual,c=>c.y===yAnoA&&c.m<=ateMes,c=>c.y===yAnoB&&c.m<=ateMes)}</div>`;
 }
 
 let _funilInit=false;
@@ -1310,7 +1394,7 @@ function renderFunil(){
   const opts=hbO();
   charts['chartFunil']=new Chart(document.getElementById('chartFunil'),{type:'bar',
     data:{labels:arr.map(x=>x[0]),datasets:[{data:arr.map(x=>Math.round(x[1])),backgroundColor:'#26c6da',borderRadius:3,barThickness:11}]},
-    options:{...opts,plugins:{...opts.plugins,tooltip:{callbacks:{label:c=>c.raw+' dias'}}},
+    options:{...opts,onClick:(e,els)=>{if(!els.length)return;const nome=arr[els[0].index][0];showDrillDown('⏱ Funil – '+nome,assinados.filter(c=>c.c1===nome&&(d=>d>=0&&d<=730)((new Date(c.dv)-new Date(c.capt))/86400000)),'média de '+Math.round(arr[els[0].index][1])+' dias da captação até a venda');},onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';},plugins:{...opts.plugins,tooltip:{callbacks:{label:c=>c.raw+' dias'}}},
       scales:{...opts.scales,x:{...opts.scales.x,ticks:{...opts.scales.x.ticks,callback:v=>v+'d'}}}}});
 }
 
@@ -1340,7 +1424,7 @@ function renderDesconto(){
       {label:'Entrada média %',data:entData,backgroundColor:'#2196F3',borderRadius:3},
       {label:'Desconto médio %',data:descData,backgroundColor:'#ef5350',borderRadius:3},
     ]},
-    options:{...baseO,plugins:{...baseO.plugins,tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw.toFixed(1)+'%'}}},
+    options:{...baseO,onClick:(e,els)=>{if(!els.length)return;const nome=nomes[els[0].index];showDrillDown('🏷 Entrada e desconto – '+nome,assinados.filter(c=>c.c1===nome),'o gráfico mostra a média por corretor');},onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';},plugins:{...baseO.plugins,tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw.toFixed(1)+'%'}}},
       scales:{y:{ticks:{color:'#888899',font:{size:9}},grid:{color:'#2a2a38'}},
               x:{ticks:{color:'#888899',font:{size:9},maxRotation:20},grid:{display:false}}}}});
 }
@@ -1385,7 +1469,7 @@ function renderEvolCorretor(){
   dc('chartEvolCorretor');
   charts['chartEvolCorretor']=new Chart(document.getElementById('chartEvolCorretor'),{type:'line',
     data:{labels:meses.map(x=>x.label),datasets},
-    options:{...baseO,plugins:{...baseO.plugins,tooltip:{callbacks:{label:c=>c.dataset.label+': '+BRL_EXACT(c.raw)}}},
+    options:{...baseO,onClick:(e,els)=>{if(!els.length)return;const nome=top[els[0].datasetIndex],mm=meses[els[0].index];showDrillDown('📈 '+nome+' – '+mm.label,ativos.filter(c=>c.c1===nome&&c.y===mm.y&&c.m===mm.m));},onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';},plugins:{...baseO.plugins,tooltip:{callbacks:{label:c=>c.dataset.label+': '+BRL_EXACT(c.raw)}}},
       scales:{y:{ticks:{color:'#888899',font:{size:9},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'Mi':v},grid:{color:'#2a2a38'}},
               x:{ticks:{color:'#888899',font:{size:9}},grid:{display:false}}}}});
 }
@@ -1405,7 +1489,7 @@ function renderSazonalidade(){
   dc('chartSazonalidade');
   charts['chartSazonalidade']=new Chart(document.getElementById('chartSazonalidade'),{type:'bar',
     data:{labels:MESES.slice(1),datasets:[{data,backgroundColor:'#8b6914',borderRadius:3}]},
-    options:{...baseO,plugins:{...baseO.plugins,legend:{display:false},tooltip:{callbacks:{label:c=>BRL_EXACT(c.raw)}}},
+    options:{...baseO,onClick:(e,els)=>{if(!els.length)return;const mm=els[0].index+1;showDrillDown('🗓 '+MESES[mm]+' (todos os anos)',ativos.filter(c=>c.m===mm),'o gráfico mostra a média por ano; aqui estão os contratos de todos os anos');},onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';},plugins:{...baseO.plugins,legend:{display:false},tooltip:{callbacks:{label:c=>BRL_EXACT(c.raw)}}},
       scales:{y:{ticks:{color:'#888899',font:{size:9},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'Mi':v},grid:{color:'#2a2a38'}},
               x:{ticks:{color:'#888899',font:{size:10}},grid:{display:false}}}}});
 }
@@ -1492,7 +1576,7 @@ function renderEstoque(){
   dc('chartEstoqueBloco');
   charts['chartEstoqueBloco']=new Chart(document.getElementById('chartEstoqueBloco'),{type:'bar',
     data:{labels:blocos,datasets:statusList.map((s,i)=>({label:s,data:porBloco.map(arr=>arr[i]),backgroundColor:STATUS_COR[s],borderRadius:3}))},
-    options:{...baseO,plugins:{...baseO.plugins,tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw}}},
+    options:{...baseO,onClick:(e,els)=>{if(!els.length)return;const b=blocos[els[0].index],st=statusList[els[0].datasetIndex];showDrillFracoes('🏢 Bloco '+b+' – '+st,base.filter(f=>f.bloco===b&&f.status===st));},onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';},plugins:{...baseO.plugins,tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw}}},
       scales:{x:{stacked:true,ticks:{color:'#888899',font:{size:11}},grid:{display:false}},
               y:{stacked:true,ticks:{color:'#888899',font:{size:9}},grid:{color:'#2a2a38'}}}}});
 
@@ -1504,7 +1588,7 @@ function renderEstoque(){
   const optsTipo=hbO();
   charts['chartEstoqueTipo']=new Chart(document.getElementById('chartEstoqueTipo'),{type:'bar',
     data:{labels:tiposOrdenados.map(x=>x[0]),datasets:[{data:tiposOrdenados.map(x=>x[1]),backgroundColor:'#2196F3',borderRadius:3,barThickness:11}]},
-    options:{...optsTipo,plugins:{...optsTipo.plugins,tooltip:{callbacks:{label:c=>c.raw+' frações'}}}}});
+    options:{...optsTipo,onClick:(e,els)=>{if(!els.length)return;const t=tiposOrdenados[els[0].index][0];showDrillFracoes('🏢 Disponíveis – '+t,base.filter(f=>f.status==='DISPONIVEL'&&(f.tipo||'Sem tipo')===t));},onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';},plugins:{...optsTipo.plugins,tooltip:{callbacks:{label:c=>c.raw+' frações'}}}}});
 
   _ultimoBaseEstoque=base;
   renderTabelaEstoque();
